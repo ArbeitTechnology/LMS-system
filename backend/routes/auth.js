@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const {register,login,forgotPassword,resetPassword,getAdmin,verifyOtp,adminGet,createSubAdmin,deleteSubAdmin,listSubAdmins, teacherregistration, teacherlogin} = require("../controllers/auth");
+const {register,login,forgotPassword,resetPassword,getAdmin,verifyOtp,adminGet,createSubAdmin,deleteSubAdmin,listSubAdmins, teacherregistration, teacherlogin, teacherforgotPassword, teacherverifyOtp, teacherresetPassword} = require("../controllers/auth");
 const { authenticateToken, authorizeAdmin } = require("../middleware/auth");
 const multer=require("multer")
 
@@ -59,8 +59,11 @@ const uploadFiles = upload.fields([
   { name: 'profile_photo', maxCount: 1 }
 ]);
 
+// ------------------------------teacher-------------------------------------
 router.post('/teacher-register', uploadFiles,teacherregistration);
-// Login route
 router.post('/teacher-login',teacherlogin);
+router.post('/teacher-forget-password',teacherforgotPassword);
+router.post('/teacher-verify-otp',teacherverifyOtp);
+router.post('/teacher-reset-password',teacherresetPassword);
 
 module.exports = router;

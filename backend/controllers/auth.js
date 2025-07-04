@@ -218,7 +218,7 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-
+// --------------teacher----------------------------
 exports.teacherregistration= async (req, res, next) => {
   try {
     // 1) Check if files were uploaded
@@ -269,7 +269,6 @@ exports.teacherregistration= async (req, res, next) => {
     next(err);
   }
 }
-
 
 exports.teacherlogin=async (req, res) => {
   try {
@@ -327,3 +326,152 @@ exports.teacherlogin=async (req, res) => {
     });
   }
 }
+
+exports.teacherforgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const teacher = await Teacher.findOne({ email });
+    if (!teacher) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "If this email is registered, you'll receive a reset OTP." 
+      });
+    }
+
+    const resetCode = Math.floor(1000 + Math.random() * 9000).toString();
+    teacher.resetCode = resetCode;
+    teacher.resetCodeExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await teacher.save();
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Teacher Portal Password Reset OTP",
+      text: `Your password reset OTP is: ${resetCode}\nThis code will expire in 10 minutes.`,
+      html: `
+        <div>
+          <h3>Teacher Portal Password Reset</h3>
+          <p>Your password reset OTP is: <strong>${resetCode}</strong></p>
+          <p>This code will expire in 10 minutes.</p>
+          <p>If you didn't request this, please ignore this email.</p>
+        </div>
+      `,
+    });
+
+    res.json({ 
+      success: true, 
+      message: "OTP sent to registered email." 
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Could not process request. Please try again." 
+    });
+  }
+};
+
+exports.teacherverifyOtp = async (req, res) => {
+  const { email, otp } = req.body;
+
+  try {
+    const teacher = await Teacher.findOne({
+      email,
+      resetCode: otp,
+      resetCodeExpires: { $gt: Date.now() },
+    });
+
+    if (!teacher) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid or expired OTP. Please request a new one." 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      message: "OTP verified successfully." 
+    });
+  } catch (error) {
+    console.error('Verify OTP error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Could not verify OTP. Please try again." 
+    });
+  }
+};
+
+exports.teacherresetPassword = async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  try {
+    // Find teacher with valid OTP
+    const teacher = await Teacher.findOne({
+      email,
+      resetCode: otp,
+      resetCodeExpires: { $gt: Date.now() },
+    });
+
+    if (!teacher) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid or expired OTP. Please start the reset process again." 
+      });
+    }
+
+    // Validate new password meets schema requirements
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters",
+      });
+    }
+
+    if (!/\d/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least one number",
+      });
+    }
+
+    if (!/[!@#$%^&*]/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must contain at least one special character",
+      });
+    }
+
+    // Hash and save new password
+    teacher.password = await bcrypt.hash(newPassword, 12);
+    teacher.resetCode = undefined;
+    teacher.resetCodeExpires = undefined;
+    await teacher.save();
+
+    // Send confirmation email
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your Password Has Been Reset",
+      text: "Your teacher portal password has been successfully reset.",
+      html: `
+        <div>
+          <h3>Password Reset Confirmation</h3>
+          <p>Your teacher portal password has been successfully reset.</p>
+          <p>If you didn't make this change, please contact support immediately.</p>
+        </div>
+      `,
+    });
+
+    res.json({ 
+      success: true, 
+      message: "Password reset successful. You can now login with your new password." 
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Could not reset password. Please try again." 
+    });
+  }
+};

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
 const studentSchema = new mongoose.Schema(
@@ -15,7 +16,6 @@ const studentSchema = new mongoose.Schema(
       lowercase: true,
       validate: {
         validator: function(v) {
-          // Basic email regex validation
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
         },
         message: 'Invalid email format'
@@ -27,7 +27,6 @@ const studentSchema = new mongoose.Schema(
       minlength: [8, 'Password must be at least 8 characters'],
       validate: {
         validator: function(v) {
-          // At least one number and one special character
           return /\d/.test(v) && /[!@#$%^&*]/.test(v);
         },
         message: 'Password must contain at least one number and one special character'
@@ -39,7 +38,6 @@ const studentSchema = new mongoose.Schema(
       required: [true, 'Full name is required'],
       validate: {
         validator: function(v) {
-          // At least two words (first and last name)
           return v.trim().split(/\s+/).length >= 2;
         },
         message: 'Must include first and last name'
@@ -50,7 +48,6 @@ const studentSchema = new mongoose.Schema(
       required: [true, 'Phone is required'],
       validate: {
         validator: function(v) {
-          // E.164 phone number format with country code
           return /^\+[1-9]\d{1,14}$/.test(v);
         },
         message: 'Include country code (e.g., +880)'
@@ -60,7 +57,7 @@ const studentSchema = new mongoose.Schema(
       type: Date,
       validate: {
         validator: function(v) {
-          if (!v) return true; // Optional field
+          if (!v) return true;
           return v instanceof Date && !isNaN(v);
         },
         message: 'Invalid date format'
@@ -71,16 +68,11 @@ const studentSchema = new mongoose.Schema(
     },
     profile_photo: {
       type: String,
-      default: 'default.jpg',
     },
     role: {
       type: String,
       enum: ['student'],
       default: 'student',
-    },
-    is_active: {
-      type: Boolean,
-      default: true,
     },
     last_login: {
       type: Date,
@@ -94,17 +86,28 @@ const studentSchema = new mongoose.Schema(
     password_reset_expires: {
       type: Date,
     },
-    is_active:{
-        type:String,
-        enum:["active","inactive"],
-        default:"active"
-    }
+    otp: {
+      type: String,
+    },
+    otpExpires: {
+      type: Date,
+    },
+    is_active: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "inactive"
+    },
+    resetCode: {
+    type: String,
+  },
+  resetCodeExpires: {
+    type: Date,
+  },
   },
   {
     timestamps: true,
     toJSON: { virtuals: true },
-    toObject: { virtuals: true },
-    timestamps:true
+    toObject: { virtuals: true }
   }
 );
 
@@ -113,24 +116,19 @@ studentSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
 
   this.password = await bcrypt.hash(this.password, 12);
+  this.password_changed_at = Date.now() - 1000; // Ensures token is created after password change
   next();
 });
 
 // Method to compare passwords
-studentSchema.methods.correctPassword = async function(
-  candidatePassword,
-  userPassword
-) {
-  return await bcrypt.compare(candidatePassword, userPassword);
+studentSchema.methods.correctPassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
 // Method to check if password was changed after token was issued
 studentSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   if (this.password_changed_at) {
-    const changedTimestamp = parseInt(
-      this.password_changed_at.getTime() / 1000,
-      10
-    );
+    const changedTimestamp = parseInt(this.password_changed_at.getTime() / 1000, 10);
     return JWTTimestamp < changedTimestamp;
   }
   return false;
