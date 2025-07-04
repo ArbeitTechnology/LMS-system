@@ -16,26 +16,27 @@ import {
   FiStar,
   FiDatabase,
   FiLogOut,
-  FiUser,
+  FiUser
 } from "react-icons/fi";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom"; // Make sure this is imported
+import { useNavigate } from "react-router-dom";
 
 const Sidebar = ({ activeView, setActiveView }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [adminData, setAdminData] = useState({
     name: "Loading...",
     email: "loading...@example.com",
-    hasNotifications: false,
-    avatarColor: "bg-gradient-to-r from-purple-500 to-pink-500",
+    avatarColor: "bg-gradient-to-r from-purple-500 to-pink-500"
   });
   const [loading, setLoading] = useState(true);
   const [expandedMenus, setExpandedMenus] = useState({});
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0); // New state for notification count
   const role = localStorage.getItem("role");
   const navigate = useNavigate();
+
   useEffect(() => {
     const fetchAdminData = async () => {
       try {
@@ -46,8 +47,8 @@ const Sidebar = ({ activeView, setActiveView }) => {
           "http://localhost:3500/api/auth/admin",
           {
             headers: {
-              Authorization: `Bearer ${token}`,
-            },
+              Authorization: `Bearer ${token}`
+            }
           }
         );
 
@@ -56,7 +57,7 @@ const Sidebar = ({ activeView, setActiveView }) => {
           "bg-gradient-to-r from-blue-500 to-teal-400",
           "bg-gradient-to-r from-amber-500 to-pink-500",
           "bg-gradient-to-r from-emerald-500 to-blue-500",
-          "bg-gradient-to-r from-violet-500 to-fuchsia-500",
+          "bg-gradient-to-r from-violet-500 to-fuchsia-500"
         ];
         const randomGradient =
           gradients[Math.floor(Math.random() * gradients.length)];
@@ -64,9 +65,21 @@ const Sidebar = ({ activeView, setActiveView }) => {
         setAdminData({
           name: response.data.username || "Admin User",
           email: response.data.email || "admin@example.com",
-          hasNotifications: response.data.notifications || false,
-          avatarColor: randomGradient,
+          avatarColor: randomGradient
         });
+
+        // Fetch notifications
+        const notificationResponse = await axios.get(
+          "http://localhost:3500/api/auth/notifications",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        // Set the notification count based on the length of notifications
+        setNotificationCount(notificationResponse.data.notifications.length);
       } catch (err) {
         console.error("Failed to fetch admin data:", err);
         toast.error("Failed to load admin data");
@@ -88,26 +101,28 @@ const Sidebar = ({ activeView, setActiveView }) => {
       icon: <FiUser />,
       children: [
         { name: "Create Teacher", component: "TeacherRegistration" },
-        { name: "List Teacher", component: "teacherList" },
-      ],
+        { name: "List Teacher", component: "teacherList" }
+      ]
     },
     {
       name: "notifications",
       icon: (
         <div className="relative">
           <FiBell />
-          {adminData.hasNotifications && (
+          {notificationCount > 0 && (
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"
-            ></motion.span>
+              className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs text-white"
+            >
+              {notificationCount}
+            </motion.span>
           )}
         </div>
       ),
-      component: "notifications",
+      component: "notifications"
     },
-    { name: "settings", icon: <FiSettings />, component: "settings" },
+    { name: "settings", icon: <FiSettings />, component: "settings" }
   ];
 
   // Add Subadmin menu only for Admins
@@ -117,15 +132,15 @@ const Sidebar = ({ activeView, setActiveView }) => {
       icon: <FiUsers />,
       children: [
         { name: "create subadmin", component: "subadminCreate" },
-        { name: "list subadmin", component: "subadminList" },
-      ],
+        { name: "list subadmin", component: "subadminList" }
+      ]
     });
   }
 
   const toggleMenu = (menuName) => {
     setExpandedMenus((prev) => ({
       ...prev,
-      [menuName]: !prev[menuName],
+      [menuName]: !prev[menuName]
     }));
   };
 
@@ -149,6 +164,7 @@ const Sidebar = ({ activeView, setActiveView }) => {
       navigate("/admin", { replace: true });
     }, 800);
   };
+
   return (
     <motion.aside
       initial={{ width: isOpen ? 256 : 80 }}

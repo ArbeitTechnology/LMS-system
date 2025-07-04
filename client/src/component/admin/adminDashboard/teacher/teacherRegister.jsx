@@ -12,7 +12,7 @@ import {
   FiPhone,
   FiFileText,
   FiLink,
-  FiDollarSign,
+  FiDollarSign
 } from "react-icons/fi";
 
 const TeacherRegistration = () => {
@@ -24,12 +24,12 @@ const TeacherRegistration = () => {
     specialization: "",
     qualifications: "",
     linkedin_url: "",
-    hourly_rate: "",
+    hourly_rate: ""
   });
   const [files, setFiles] = useState({
     cv: null,
     certificates: [],
-    profile_photo: null,
+    profile_photo: null
   });
   const [errors, setErrors] = useState({
     email: "",
@@ -39,7 +39,7 @@ const TeacherRegistration = () => {
     specialization: "",
     qualifications: "",
     cv: "",
-    certificates: "",
+    certificates: ""
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -165,32 +165,21 @@ const TeacherRegistration = () => {
       if (files.cv) formData.append("cv", files.cv);
       if (files.profile_photo)
         formData.append("profile_photo", files.profile_photo);
-      files.certificates.forEach((cert, index) => {
-        formData.append(`certificates[${index}]`, cert);
+      files.certificates.forEach((cert) => {
+        formData.append("certificates", cert); // Remove the [index] part
       });
 
       await axios.post(
-        // "http://localhost:3500/api/auth/register/teacher",
+        "http://localhost:3500/api/auth/teacher-register",
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
-          },
+            "Content-Type": "multipart/form-data"
+          }
         }
       );
 
-      toast.success("Registration submitted for approval", {
-        style: {
-          background: "#fff",
-          color: "#000",
-          border: "1px solid #e5e7eb",
-          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-        },
-        iconTheme: {
-          primary: "#000",
-          secondary: "#fff",
-        },
-      });
+      toast.success("Registration submitted for approval");
 
       // Reset form
       setForm({
@@ -202,25 +191,15 @@ const TeacherRegistration = () => {
         qualifications: "",
         linkedin_url: "",
         hourly_rate: "",
+        status: "pending"
       });
       setFiles({
         cv: null,
         certificates: [],
-        profile_photo: null,
+        profile_photo: null
       });
     } catch (err) {
-      toast.error(err.response?.data?.message || "Registration failed", {
-        style: {
-          background: "#fff",
-          color: "#000",
-          border: "1px solid #e5e7eb",
-          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-        },
-        iconTheme: {
-          primary: "#ff0000",
-          secondary: "#ffffff",
-        },
-      });
+      toast.error(err.response?.data?.message || "Registration failed");
     } finally {
       setIsSubmitting(false);
     }
@@ -276,7 +255,7 @@ const TeacherRegistration = () => {
                   placeholder="teacher@example.com"
                   className={`w-full px-4 py-3 rounded-lg border ${
                     errors.email ? "border-red-500" : "border-gray-700"
-                  } focus:ring-2 focus:ring-black focus:border-transparent`}
+                  } focus:ring-2 focus:ring-black focus:border-gray-500`}
                 />
                 {errors.email && (
                   <motion.p
@@ -304,7 +283,7 @@ const TeacherRegistration = () => {
                     placeholder="At least 8 characters with 1 number & special char"
                     className={`w-full px-4 py-3 rounded-lg border ${
                       errors.password ? "border-red-500" : "border-gray-700"
-                    } focus:ring-2 focus:ring-black focus:border-transparent pr-10`}
+                    } focus:ring-2 focus:ring-black focus:border-gray-500 pr-10`}
                   />
                   <button
                     type="button"
@@ -338,7 +317,7 @@ const TeacherRegistration = () => {
                   placeholder="First and Last name"
                   className={`w-full px-4 py-3 rounded-lg border ${
                     errors.full_name ? "border-red-500" : "border-gray-700"
-                  } focus:ring-2 focus:ring-black focus:border-transparent`}
+                  } focus:ring-2 focus:ring-black focus:border-gray-500`}
                 />
                 {errors.full_name && (
                   <motion.p
@@ -364,7 +343,7 @@ const TeacherRegistration = () => {
                   placeholder="+8801912345678"
                   className={`w-full px-4 py-3 rounded-lg border ${
                     errors.phone ? "border-red-500" : "border-gray-700"
-                  } focus:ring-2 focus:ring-black focus:border-transparent`}
+                  } focus:ring-2 focus:ring-black focus:border-gray-500`}
                 />
                 {errors.phone && (
                   <motion.p
@@ -394,7 +373,7 @@ const TeacherRegistration = () => {
                   }
                   className={`w-full px-4 py-3 rounded-lg border ${
                     errors.specialization ? "border-red-500" : "border-gray-700"
-                  } focus:ring-2 focus:ring-black focus:border-transparent`}
+                  } focus:ring-2 focus:ring-black focus:border-gray-500`}
                 >
                   <option value="">Select your specialization</option>
                   <option value="IELTS">IELTS</option>
@@ -431,7 +410,7 @@ const TeacherRegistration = () => {
                   rows="3"
                   className={`w-full px-4 py-3 rounded-lg border ${
                     errors.qualifications ? "border-red-500" : "border-gray-700"
-                  } focus:ring-2 focus:ring-black focus:border-transparent`}
+                  } `}
                 />
                 {errors.qualifications && (
                   <motion.p
@@ -459,7 +438,7 @@ const TeacherRegistration = () => {
                   placeholder="linkedin.com/in/username"
                   className={`w-full px-4 py-3 rounded-lg border ${
                     errors.linkedin_url ? "border-red-500" : "border-gray-700"
-                  } focus:ring-2 focus:ring-black focus:border-transparent`}
+                  } focus:ring-2 focus:ring-black focus:border-gray-500`}
                 />
                 {errors.linkedin_url && (
                   <motion.p
@@ -489,7 +468,7 @@ const TeacherRegistration = () => {
                   placeholder="25.00"
                   className={`w-full px-4 py-3 rounded-lg border ${
                     errors.hourly_rate ? "border-red-500" : "border-gray-700"
-                  } focus:ring-2 focus:ring-black focus:border-transparent appearance-none`}
+                  } focus:ring-2 focus:ring-black focus:border-gray-500 appearance-none`}
                 />
                 {errors.hourly_rate && (
                   <motion.p
@@ -527,7 +506,7 @@ const TeacherRegistration = () => {
                         setFiles((prev) => ({ ...prev, cv: null }));
                         setErrors((prev) => ({
                           ...prev,
-                          cv: "CV is required",
+                          cv: "CV is required"
                         }));
                       }}
                       className="text-gray-400 hover:text-red-500 ml-2 transition-colors duration-200"
@@ -595,7 +574,7 @@ const TeacherRegistration = () => {
                         handleFileChange(e);
                         setErrors((prev) => ({
                           ...prev,
-                          certificates: "",
+                          certificates: ""
                         }));
                       }}
                       className="hidden"
@@ -625,7 +604,7 @@ const TeacherRegistration = () => {
                                 certificates:
                                   files.certificates.length <= 1
                                     ? "At least one certificate is required"
-                                    : "",
+                                    : ""
                               }));
                             }}
                             className="text-gray-400 hover:text-red-500 ml-2 transition-colors duration-200"
@@ -674,7 +653,7 @@ const TeacherRegistration = () => {
                             handleFileChange(e);
                             setErrors((prev) => ({
                               ...prev,
-                              certificates: "",
+                              certificates: ""
                             }));
                           }}
                           className="hidden"
@@ -710,7 +689,7 @@ const TeacherRegistration = () => {
                       onClick={() =>
                         setFiles((prev) => ({
                           ...prev,
-                          profile_photo: null,
+                          profile_photo: null
                         }))
                       }
                       className="text-gray-400 hover:text-red-500 ml-2 transition-colors duration-200"

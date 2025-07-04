@@ -20,7 +20,7 @@ exports.adminGet = async (req, res) => {
       username: admin.username,
       email: admin.email,
       role: admin.role,
-      notifications: true,
+      notifications: true
     });
   } catch {
     res.status(500).json({ message: "Server error" });
@@ -61,7 +61,7 @@ exports.register = async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      role: "admin",
+      role: "admin"
     });
 
     await newAdmin.save();
@@ -77,11 +77,19 @@ exports.login = async (req, res) => {
 
   try {
     const admin = await Admin.findOne({ email }).select("+password");
+
     if (!admin) return res.send({ success: false, message: "User not found." });
 
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch)
       return res.send({ success: false, message: "Invalid credentials." });
+
+    if (admin.status !== "active") {
+      return res.send({
+        success: false,
+        message: "Make the status active then you can log in."
+      });
+    }
 
     const token = generateToken(admin._id, admin.role);
     res.json({ success: true, token, admin });
@@ -104,7 +112,7 @@ exports.createSubAdmin = async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      role: "subadmin",
+      role: "subadmin"
     });
 
     await subAdmin.save();
@@ -142,14 +150,46 @@ exports.listSubAdmins = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+//status update for subadmins
+exports.updateSubadminStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
 
-// Forgot Password
+    if (!["active", "inactive", "suspended"].includes(status)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid status" });
+    }
+
+    const updated = await Admin.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Subadmin not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Status updated successfully",
+      subadmin: updated
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+// Forgot Password admin
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
+    pass: process.env.EMAIL_PASS
+  }
 });
 
 exports.forgotPassword = async (req, res) => {
@@ -168,7 +208,7 @@ exports.forgotPassword = async (req, res) => {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Password Reset OTP",
-      text: `Your OTP is: ${resetCode}`,
+      text: `Your OTP is: ${resetCode}`
     });
 
     res.json({ success: true, message: "OTP sent." });
@@ -184,7 +224,7 @@ exports.verifyOtp = async (req, res) => {
     const admin = await Admin.findOne({
       email,
       resetCode: otp,
-      resetCodeExpires: { $gt: Date.now() },
+      resetCodeExpires: { $gt: Date.now() }
     });
 
     if (!admin)
@@ -202,7 +242,7 @@ exports.resetPassword = async (req, res) => {
     const admin = await Admin.findOne({
       email,
       resetCode: otp,
-      resetCodeExpires: { $gt: Date.now() },
+      resetCodeExpires: { $gt: Date.now() }
     });
 
     if (!admin) return res.send({ success: false, message: "Invalid OTP." });
@@ -219,27 +259,9 @@ exports.resetPassword = async (req, res) => {
 };
 
 // --------------teacher----------------------------
-exports.teacherregistration= async (req, res, next) => {
+exports.teacherregistration = async (req, res, next) => {
   try {
-    // 1) Check if files were uploaded
-    if (!req.files || !req.files.cv || req.files.cv.length === 0) {
-      return next(new AppError('CV is required', 400));
-    }
-
-    if (!req.files.certificates || req.files.certificates.length === 0) {
-      return next(new AppError('At least one certificate is required', 400));
-    }
-
-    // 2) Prepare file paths
-    const cvPath = req.files.cv[0].path.replace(/\\/g, '/').replace('public/', '');
-    const certificatesPaths = req.files.certificates.map(file =>
-      file.path.replace(/\\/g, '/').replace('public/', '')
-    );
-    const profilePhotoPath = req.files.profile_photo && req.files.profile_photo[0]
-      ? req.files.profile_photo[0].path.replace(/\\/g, '/').replace('public/', '')
-      : undefined;
-
-    // 3) Create new teacher
+    // 1) Save teacher data first
     const newTeacher = await Teacher.create({
       email: req.body.email,
       password: req.body.password,
@@ -249,18 +271,57 @@ exports.teacherregistration= async (req, res, next) => {
       qualifications: req.body.qualifications,
       linkedin_url: req.body.linkedin_url,
       hourly_rate: req.body.hourly_rate,
-      cv: cvPath,
-      certificates: certificatesPaths,
-      profile_photo: profilePhotoPath,
-      status: 'pending' // Default status
+      status: "pending" // Default status
     });
 
-    // 4) Remove password from output
+    // 2) Proceed with file uploads after teacher is created and we have teacherId
+    const teacherId = newTeacher._id.toString();
+
+    if (!req.files || !req.files.cv || req.files.cv.length === 0) {
+      return next(new AppError("CV is required", 400));
+    }
+
+    if (!req.files.certificates || req.files.certificates.length === 0) {
+      return next(new AppError("At least one certificate is required", 400));
+    }
+
+    // 3) Prepare file paths using teacherId in filename
+    const cvPath = req.files.cv[0].path
+      .replace(/\\/g, "/")
+      .replace("public/", "");
+    const certificatesPaths = req.files.certificates.map((file) =>
+      file.path.replace(/\\/g, "/").replace("public/", "")
+    );
+    const profilePhotoPath =
+      req.files.profile_photo && req.files.profile_photo[0]
+        ? req.files.profile_photo[0].path
+            .replace(/\\/g, "/")
+            .replace("public/", "")
+        : undefined;
+
+    // 4) Rename uploaded files to include teacherId in the filename
+    const newCvPath = cvPath.replace(/temp-/g, `teacher-${teacherId}-`);
+    const newCertificatesPaths = certificatesPaths.map((certPath) =>
+      certPath.replace(/temp-/g, `teacher-${teacherId}-`)
+    );
+    const newProfilePhotoPath = profilePhotoPath
+      ? profilePhotoPath.replace(/temp-/g, `teacher-${teacherId}-`)
+      : undefined;
+
+    // 5) Update teacher with the correct file paths
+    newTeacher.cv = newCvPath;
+    newTeacher.certificates = newCertificatesPaths;
+    newTeacher.profile_photo = newProfilePhotoPath;
+
+    // Save the updated teacher document
+    await newTeacher.save();
+
+    // 6) Remove password from output before sending response
     newTeacher.password = undefined;
 
-    // 5) Send response
+    // 7) Send the response back with the new teacher data
     res.status(201).json({
-      status: 'success',
+      status: "success",
       data: {
         teacher: newTeacher
       }
@@ -268,64 +329,101 @@ exports.teacherregistration= async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-}
+};
 
-exports.teacherlogin=async (req, res) => {
+exports.notifications = async (req, res) => {
+  try {
+    const notifications = await Teacher.find({ status: "pending" });
+    res.json({ success: true, notifications });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch notifications" });
+  }
+};
+exports.approveTeacher = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const { status } = req.body;
+
+    // Validate status
+    if (!["pending", "approved", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    // Find teacher and update status
+    const teacher = await Teacher.findByIdAndUpdate(
+      teacherId,
+      { status },
+      { new: true }
+    );
+
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    res.json({ success: true, teacher });
+  } catch (err) {
+    res.status(500).json({ message: "Error updating status" });
+  }
+};
+exports.teacherlogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     // 1) Check if email and password exist
     if (!email || !password) {
       return res.status(400).json({
-        status: 'fail',
-        message: 'Please provide email and password'
+        status: "fail",
+        message: "Please provide email and password"
       });
     }
 
     // 2) Check if teacher exists and password is correct
-    const teacher = await Teacher.findOne({ email }).select('+password');
-    
-    if (!teacher || !(await teacher.correctPassword(password, teacher.password))) {
+    const teacher = await Teacher.findOne({ email }).select("+password");
+
+    if (
+      !teacher ||
+      !(await teacher.correctPassword(password, teacher.password))
+    ) {
       return res.status(401).json({
-        status: 'fail',
-        message: 'Incorrect email or password'
+        status: "fail",
+        message: "Incorrect email or password"
       });
     }
 
     // 3) Check if teacher account is approved
-    if (teacher.status !== 'approved') {
+    if (teacher.status !== "approved") {
       return res.status(403).json({
-        status: 'fail',
-        message: 'Your account is not yet approved. Please wait for admin approval.'
+        status: "fail",
+        message:
+          "Your account is not yet approved. Please wait for admin approval."
       });
     }
 
     // 4) If everything is OK, send token to client
-    const token = jwt.sign(
-      { id: teacher._id, role: 'teacher' },
-      JWT_SECRET,
-      { expiresIn: "10d" }
-    );
+    const token = jwt.sign({ id: teacher._id, role: "teacher" }, JWT_SECRET, {
+      expiresIn: "10d"
+    });
 
     // Remove password from output
     teacher.password = undefined;
 
     res.status(200).json({
-      status: 'success',
+      status: "success",
       token,
       data: {
         teacher
       }
     });
-
   } catch (err) {
-    console.error('Login error:', err);
+    console.error("Login error:", err);
     res.status(500).json({
-      status: 'error',
-      message: 'An error occurred during login'
+      status: "error",
+      message: "An error occurred during login"
     });
   }
-}
+};
 
 exports.teacherforgotPassword = async (req, res) => {
   const { email } = req.body;
@@ -333,9 +431,9 @@ exports.teacherforgotPassword = async (req, res) => {
   try {
     const teacher = await Teacher.findOne({ email });
     if (!teacher) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "If this email is registered, you'll receive a reset OTP." 
+      return res.status(404).json({
+        success: false,
+        message: "If this email is registered, you'll receive a reset OTP."
       });
     }
 
@@ -356,18 +454,18 @@ exports.teacherforgotPassword = async (req, res) => {
           <p>This code will expire in 10 minutes.</p>
           <p>If you didn't request this, please ignore this email.</p>
         </div>
-      `,
+      `
     });
 
-    res.json({ 
-      success: true, 
-      message: "OTP sent to registered email." 
+    res.json({
+      success: true,
+      message: "OTP sent to registered email."
     });
   } catch (error) {
-    console.error('Forgot password error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: "Could not process request. Please try again." 
+    console.error("Forgot password error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Could not process request. Please try again."
     });
   }
 };
@@ -379,25 +477,25 @@ exports.teacherverifyOtp = async (req, res) => {
     const teacher = await Teacher.findOne({
       email,
       resetCode: otp,
-      resetCodeExpires: { $gt: Date.now() },
+      resetCodeExpires: { $gt: Date.now() }
     });
 
     if (!teacher) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid or expired OTP. Please request a new one." 
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP. Please request a new one."
       });
     }
 
-    res.json({ 
-      success: true, 
-      message: "OTP verified successfully." 
+    res.json({
+      success: true,
+      message: "OTP verified successfully."
     });
   } catch (error) {
-    console.error('Verify OTP error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: "Could not verify OTP. Please try again." 
+    console.error("Verify OTP error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Could not verify OTP. Please try again."
     });
   }
 };
@@ -410,13 +508,13 @@ exports.teacherresetPassword = async (req, res) => {
     const teacher = await Teacher.findOne({
       email,
       resetCode: otp,
-      resetCodeExpires: { $gt: Date.now() },
+      resetCodeExpires: { $gt: Date.now() }
     });
 
     if (!teacher) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid or expired OTP. Please start the reset process again." 
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP. Please start the reset process again."
       });
     }
 
@@ -424,21 +522,21 @@ exports.teacherresetPassword = async (req, res) => {
     if (newPassword.length < 8) {
       return res.status(400).json({
         success: false,
-        message: "Password must be at least 8 characters",
+        message: "Password must be at least 8 characters"
       });
     }
 
     if (!/\d/.test(newPassword)) {
       return res.status(400).json({
         success: false,
-        message: "Password must contain at least one number",
+        message: "Password must contain at least one number"
       });
     }
 
     if (!/[!@#$%^&*]/.test(newPassword)) {
       return res.status(400).json({
         success: false,
-        message: "Password must contain at least one special character",
+        message: "Password must contain at least one special character"
       });
     }
 
@@ -460,18 +558,19 @@ exports.teacherresetPassword = async (req, res) => {
           <p>Your teacher portal password has been successfully reset.</p>
           <p>If you didn't make this change, please contact support immediately.</p>
         </div>
-      `,
+      `
     });
 
-    res.json({ 
-      success: true, 
-      message: "Password reset successful. You can now login with your new password." 
+    res.json({
+      success: true,
+      message:
+        "Password reset successful. You can now login with your new password."
     });
   } catch (error) {
-    console.error('Reset password error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: "Could not reset password. Please try again." 
+    console.error("Reset password error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Could not reset password. Please try again."
     });
   }
 };
