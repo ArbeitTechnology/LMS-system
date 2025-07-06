@@ -52,6 +52,12 @@ const TeacherSettings = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // For handling temporary file removal and addition
+  const [tempFiles, setTempFiles] = useState({
+    cv: null,
+    certificates: []
+  });
+
   useEffect(() => {
     const fetchTeacherProfile = async () => {
       try {
@@ -96,11 +102,30 @@ const TeacherSettings = () => {
       setEditMode({ ...editMode, [field]: true });
     }
   };
+  const handleFileChangeImage = (e) => {
+    const file = e.target.files[0]; // Get the first file
 
-  const handleProfileChange = (e, field) => {
-    setTempData({ ...tempData, [field]: e.target.value });
+    if (file) {
+      // Create a URL for the selected image and set it as the new profile photo
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setTeacherData({
+          ...teacherData,
+          profile_photo: reader.result // This is the image's base64 URL
+        });
+      };
+      reader.readAsDataURL(file); // Read the file as a Data URL
+    }
   };
-
+  const handleProfileChange = (e, field) => {
+    const value = e.target.value;
+    if (field === "email") {
+      // Convert email to lowercase if the field is email
+      setTempData({ ...tempData, [field]: value.toLowerCase() });
+    } else {
+      setTempData({ ...tempData, [field]: value });
+    }
+  };
   const saveProfile = async (field) => {
     if (!tempData[field] || tempData[field] === teacherData[field]) {
       setEditMode({ ...editMode, [field]: false });
@@ -181,20 +206,25 @@ const TeacherSettings = () => {
     const fileList = Array.from(e.target.files);
 
     if (name === "certificates") {
-      setTeacherData((prev) => ({
+      setTempFiles((prev) => ({
         ...prev,
         [name]: [...prev[name], ...fileList]
       }));
     } else {
-      setTeacherData((prev) => ({ ...prev, [name]: fileList[0] }));
+      setTempFiles((prev) => ({ ...prev, [name]: fileList[0] }));
     }
   };
 
   const removeCertificate = (index) => {
-    const updatedCertificates = [...teacherData.certificates];
+    const updatedCertificates = [...tempFiles.certificates];
     updatedCertificates.splice(index, 1);
-    setTeacherData((prev) => ({ ...prev, certificates: updatedCertificates }));
+    setTempFiles((prev) => ({ ...prev, certificates: updatedCertificates }));
   };
+
+  const removeCv = () => {
+    setTempFiles((prev) => ({ ...prev, cv: null }));
+  };
+
   const togglePasswordVisibility = (field) => {
     switch (field) {
       case "current":
@@ -208,6 +238,43 @@ const TeacherSettings = () => {
         break;
       default:
         break;
+    }
+  };
+
+  const handleUpdateFiles = async () => {
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+
+    // Add CV and certificates to the form data
+    if (tempFiles.cv) {
+      formData.append("cv", tempFiles.cv);
+    }
+
+    tempFiles.certificates.forEach((file, index) => {
+      formData.append(`certificates[${index}]`, file);
+    });
+
+    try {
+      await axios.put(
+        "http://localhost:3500/api/auth/update-teacher-files",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
+
+      setTeacherData((prevData) => ({
+        ...prevData,
+        cv: tempFiles.cv,
+        certificates: tempFiles.certificates
+      }));
+
+      toast.success("Files updated successfully!");
+    } catch (error) {
+      toast.error("Failed to update files");
     }
   };
 
@@ -229,13 +296,13 @@ const TeacherSettings = () => {
         </div>
 
         <div className="flex items-center mb-8">
-          <div className="relative">
+          <div className="relative mx-auto">
             <img
               src={
                 teacherData.profile_photo || "https://via.placeholder.com/150"
               }
               alt="Profile"
-              className="w-20 h-20 rounded-full object-cover"
+              className="w-30 h-30 rounded-full object-cover border-2 border-gray-200"
             />
             <button
               onClick={() => document.getElementById("fileInput").click()}
@@ -246,11 +313,12 @@ const TeacherSettings = () => {
             <input
               type="file"
               id="fileInput"
-              onChange={handleFileChange}
+              onChange={handleFileChangeImage}
               className="hidden"
               accept="image/*"
             />
           </div>
+
           <div className="ml-6">
             <h2 className="text-xl font-semibold text-gray-800">
               {teacherData.full_name}
@@ -603,7 +671,7 @@ const TeacherSettings = () => {
                         <input
                           id="currentPassword"
                           name="currentPassword"
-                          type={showPasswordChange ? "text" : "password"}
+                          type={showCurrentPassword ? "text" : "password"}
                           value={passwordData.currentPassword}
                           onChange={handlePasswordChange}
                           required
@@ -614,7 +682,7 @@ const TeacherSettings = () => {
                           onClick={() => togglePasswordVisibility("current")}
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                         >
-                          {showPasswordChange ? (
+                          {showCurrentPassword ? (
                             <FiEye size={18} />
                           ) : (
                             <FiEyeOff size={18} />
@@ -635,7 +703,7 @@ const TeacherSettings = () => {
                         <input
                           id="newPassword"
                           name="newPassword"
-                          type={showPasswordChange ? "text" : "password"}
+                          type={showNewPassword ? "text" : "password"}
                           value={passwordData.newPassword}
                           onChange={handlePasswordChange}
                           required
@@ -647,7 +715,7 @@ const TeacherSettings = () => {
                           onClick={() => togglePasswordVisibility("new")}
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                         >
-                          {showPasswordChange ? (
+                          {showNewPassword ? (
                             <FiEye size={18} />
                           ) : (
                             <FiEyeOff size={18} />
@@ -668,7 +736,7 @@ const TeacherSettings = () => {
                         <input
                           id="confirmPassword"
                           name="confirmPassword"
-                          type={showPasswordChange ? "text" : "password"}
+                          type={showConfirmPassword ? "text" : "password"}
                           value={passwordData.confirmPassword}
                           onChange={handlePasswordChange}
                           required
@@ -679,7 +747,7 @@ const TeacherSettings = () => {
                           onClick={() => togglePasswordVisibility("confirm")}
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                         >
-                          {showPasswordChange ? (
+                          {showConfirmPassword ? (
                             <FiEye size={18} />
                           ) : (
                             <FiEyeOff size={18} />
@@ -708,6 +776,276 @@ const TeacherSettings = () => {
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
+          <div className="space-y-8 p-6 bg-white rounded-xl shadow-sm">
+            {/* CV File Upload */}
+            <div className="border-b border-gray-100 pb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                  <svg
+                    className="w-5 h-5 mr-2 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  CV
+                </h3>
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                  PDF, max 5MB
+                </span>
+              </div>
+
+              {tempFiles.cv ? (
+                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-200 transition-all hover:border-gray-500">
+                  <div className="flex items-center">
+                    <svg
+                      className="w-6 h-6 text-red-500 mr-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <span className="font-medium text-gray-800 truncate max-w-xs">
+                      {tempFiles.cv.name}
+                    </span>
+                  </div>
+                  <button
+                    onClick={removeCv}
+                    className="text-red-600 hover:text-red-800 transition-colors flex items-center"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <label
+                    htmlFor="cv-upload"
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <svg
+                        className="w-10 h-10 mb-3 text-gray-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
+                      </svg>
+                      <p className="mb-2 text-sm text-gray-500">
+                        <span className="font-semibold">Click to upload</span>{" "}
+                        or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">PDF (Max. 5MB)</p>
+                    </div>
+                    <input
+                      id="cv-upload"
+                      type="file"
+                      name="cv"
+                      onChange={handleFileChange}
+                      accept=".pdf"
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
+
+            {/* Certificates File Upload */}
+            <div className="border-b border-gray-100 pb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                  <svg
+                    className="w-5 h-5 mr-2 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Certificates
+                </h3>
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                  PDF/Image, max 5MB
+                </span>
+              </div>
+
+              {tempFiles.certificates.length > 0 && (
+                <div className="space-y-3 mb-4">
+                  {tempFiles.certificates.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200 transition-all hover:border-gray-500"
+                    >
+                      <div className="flex items-center">
+                        {file.type.includes("pdf") ? (
+                          <svg
+                            className="w-6 h-6 text-red-500 mr-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="w-6 h-6 text-gray-500 mr-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                        )}
+                        <span className="font-medium text-gray-800 truncate max-w-xs">
+                          {file.name}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => removeCertificate(index)}
+                        className="text-red-600 hover:text-red-800 transition-colors"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {tempFiles.certificates.length < 5 && (
+                <div className="relative">
+                  <label
+                    htmlFor="certificates-upload"
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <svg
+                        className="w-10 h-10 mb-3 text-gray-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
+                      </svg>
+                      <p className="mb-2 text-sm text-gray-500">
+                        <span className="font-semibold">Click to upload</span>{" "}
+                        or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        PDF or Images (Max. 5 files, 5MB each)
+                      </p>
+                    </div>
+                    <input
+                      id="certificates-upload"
+                      type="file"
+                      name="certificates"
+                      onChange={handleFileChange}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      multiple
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
+
+            {/* Update Files Button */}
+            {(tempFiles.cv || tempFiles.certificates.length > 0) && (
+              <div className="flex justify-end">
+                <button
+                  onClick={handleUpdateFiles}
+                  className="px-6 py-3 bg-gradient-to-r from-gray-800 to-black text-white font-medium rounded-lg shadow-md  transition-all transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-offset-2"
+                >
+                  <div className="flex items-center">
+                    <svg
+                      className="w-5 h-5 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
+                    </svg>
+                    Update Documents
+                  </div>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </motion.div>

@@ -88,7 +88,13 @@ const Settings = () => {
 
   // Handle profile field changes
   const handleProfileChange = (e, field) => {
-    setTempProfile({ ...tempProfile, [field]: e.target.value });
+    const value = e.target.value;
+    if (field === "email") {
+      // Convert email to lowercase if the field is email
+      setTempProfile({ ...tempProfile, [field]: value.toLowerCase() });
+    } else {
+      setTempProfile({ ...tempProfile, [field]: value });
+    }
   };
 
   // Save updated profile fields
@@ -223,12 +229,12 @@ const Settings = () => {
 
         {/* Profile Section */}
         <div className="p-2">
-          <div className="flex items-center mb-8">
-            <div className="relative">
+          <div className="flex items-center mb-8 ">
+            <div className="relative mx-auto">
               <img
                 src={profile.profile_photo || "https://via.placeholder.com/150"}
                 alt="Profile"
-                className="w-20 h-20 rounded-full object-cover"
+                className="w-30 h-30 rounded-full object-cover border-2 border-gray-300"
               />
               <button
                 onClick={() => document.getElementById("fileInput").click()}
@@ -340,7 +346,10 @@ const Settings = () => {
             {/* Phone Field */}
             <div className="border-b border-gray-200 pb-6">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-sm font-medium text-gray-500">Phone</h3>
+                <h3 className="text-sm font-medium text-gray-500 flex items-center">
+                  <FiPhone className="mr-2" size={14} />
+                  Phone
+                </h3>
                 {editMode.phone ? (
                   <div className="flex space-x-2">
                     <button
@@ -367,14 +376,60 @@ const Settings = () => {
               </div>
               {editMode.phone ? (
                 <input
-                  type="text"
+                  type="tel"
                   value={tempProfile.phone || ""}
                   onChange={(e) => handleProfileChange(e, "phone")}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Enter phone number"
+                />
+              ) : (
+                <p className="text-lg font-medium text-gray-800">
+                  {profile.phone || "Not provided"}
+                </p>
+              )}
+            </div>
+
+            {/* Date of Birth Field */}
+            <div className="border-b border-gray-200 pb-6">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-sm font-medium text-gray-500 flex items-center">
+                  <FiCalendar className="mr-2" size={14} />
+                  Date of Birth
+                </h3>
+                {editMode.date_of_birth ? (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => saveProfile("date_of_birth")}
+                      className="p-1.5 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
+                    >
+                      <FiSave size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleEditToggle("date_of_birth")}
+                      className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                    >
+                      <FiX size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleEditToggle("date_of_birth")}
+                    className="p-1.5 rounded-full bg-gray-700 text-gray-100 hover:bg-black transition-colors"
+                  >
+                    <FiEdit2 size={16} />
+                  </button>
+                )}
+              </div>
+              {editMode.date_of_birth ? (
+                <input
+                  type="date"
+                  value={tempProfile.date_of_birth || ""}
+                  onChange={(e) => handleProfileChange(e, "date_of_birth")}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               ) : (
                 <p className="text-lg font-medium text-gray-800">
-                  {profile.phone}
+                  {profile.date_of_birth || "Not provided"}
                 </p>
               )}
             </div>
@@ -382,7 +437,10 @@ const Settings = () => {
             {/* Address Field */}
             <div className="border-b border-gray-200 pb-6">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-sm font-medium text-gray-500">Address</h3>
+                <h3 className="text-sm font-medium text-gray-500 flex items-center">
+                  <FiMapPin className="mr-2" size={14} />
+                  Address
+                </h3>
                 {editMode.address ? (
                   <div className="flex space-x-2">
                     <button
@@ -408,15 +466,16 @@ const Settings = () => {
                 )}
               </div>
               {editMode.address ? (
-                <input
-                  type="text"
+                <textarea
                   value={tempProfile.address || ""}
                   onChange={(e) => handleProfileChange(e, "address")}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  rows={3}
+                  placeholder="Enter your full address"
                 />
               ) : (
                 <p className="text-lg font-medium text-gray-800">
-                  {profile.address}
+                  {profile.address || "Not provided"}
                 </p>
               )}
             </div>
