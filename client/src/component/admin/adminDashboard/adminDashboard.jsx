@@ -5,6 +5,7 @@ import SubadminList from "../adminDashboard/subadmins/SubadminList";
 import TeacherRegistration from "./teacher/teacherRegister";
 import TeacherList from "./teacher/teacherList";
 import Notifications from "./notifications";
+import Settings from "./settings";
 
 const AdminDashboard = () => {
   const [activeView, setActiveView] = useState("dashboard");
@@ -21,6 +22,8 @@ const AdminDashboard = () => {
         return <TeacherList />;
       case "notifications":
         return <Notifications setNotificationCount={setNotificationCount} />;
+      case "settings":
+        return <Settings />;
       default:
         return <h1 className="p-6 text-xl font-bold">Dashboard Overview</h1>;
     }
