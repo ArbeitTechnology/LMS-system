@@ -10,7 +10,7 @@ import {
   FiPhone,
   FiFileText,
   FiLink,
-  FiDollarSign
+  FiDollarSign,
 } from "react-icons/fi";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -27,7 +27,7 @@ const TeacherSettings = () => {
     hourly_rate: "",
     profile_photo: null,
     cv: null,
-    certificates: []
+    certificates: [],
   });
 
   const [editMode, setEditMode] = useState({
@@ -37,7 +37,7 @@ const TeacherSettings = () => {
     specialization: false,
     qualifications: false,
     linkedin_url: false,
-    hourly_rate: false
+    hourly_rate: false,
   });
 
   const [tempData, setTempData] = useState({});
@@ -45,7 +45,7 @@ const TeacherSettings = () => {
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -55,7 +55,7 @@ const TeacherSettings = () => {
   // For handling temporary file removal and addition
   const [tempFiles, setTempFiles] = useState({
     cv: null,
-    certificates: []
+    certificates: [],
   });
 
   useEffect(() => {
@@ -68,8 +68,8 @@ const TeacherSettings = () => {
           "http://localhost:3500/api/auth/teacher",
           {
             headers: {
-              Authorization: `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 
@@ -83,7 +83,7 @@ const TeacherSettings = () => {
           hourly_rate: response.data.hourly_rate || "",
           profile_photo: response.data.profile_photo || null,
           cv: response.data.cv || null,
-          certificates: response.data.certificates || []
+          certificates: response.data.certificates || [],
         });
       } catch (error) {
         console.error("Failed to fetch profile data", error);
@@ -111,7 +111,7 @@ const TeacherSettings = () => {
       reader.onloadend = () => {
         setTeacherData({
           ...teacherData,
-          profile_photo: reader.result // This is the image's base64 URL
+          profile_photo: reader.result, // This is the image's base64 URL
         });
       };
       reader.readAsDataURL(file); // Read the file as a Data URL
@@ -139,8 +139,8 @@ const TeacherSettings = () => {
         { [field]: tempData[field] },
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -177,12 +177,12 @@ const TeacherSettings = () => {
         "http://localhost:3500/api/auth/change-teacher-password",
         {
           currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword
+          newPassword: passwordData.newPassword,
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -190,7 +190,7 @@ const TeacherSettings = () => {
       setPasswordData({
         currentPassword: "",
         newPassword: "",
-        confirmPassword: ""
+        confirmPassword: "",
       });
       setShowPasswordChange(false);
     } catch (err) {
@@ -208,7 +208,7 @@ const TeacherSettings = () => {
     if (name === "certificates") {
       setTempFiles((prev) => ({
         ...prev,
-        [name]: [...prev[name], ...fileList]
+        [name]: [...prev[name], ...fileList],
       }));
     } else {
       setTempFiles((prev) => ({ ...prev, [name]: fileList[0] }));
@@ -261,15 +261,15 @@ const TeacherSettings = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data"
-          }
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
 
       setTeacherData((prevData) => ({
         ...prevData,
         cv: tempFiles.cv,
-        certificates: tempFiles.certificates
+        certificates: tempFiles.certificates,
       }));
 
       toast.success("Files updated successfully!");
@@ -361,7 +361,7 @@ const TeacherSettings = () => {
                 type="text"
                 value={tempData.full_name || ""}
                 onChange={(e) => handleProfileChange(e, "full_name")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500 "
               />
             ) : (
               <p className="text-lg font-medium text-gray-800">
@@ -403,7 +403,7 @@ const TeacherSettings = () => {
                 type="email"
                 value={tempData.email || ""}
                 onChange={(e) => handleProfileChange(e, "email")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500 "
               />
             ) : (
               <p className="text-lg font-medium text-gray-800">
@@ -445,7 +445,7 @@ const TeacherSettings = () => {
                 type="text"
                 value={tempData.phone || ""}
                 onChange={(e) => handleProfileChange(e, "phone")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500 "
               />
             ) : (
               <p className="text-lg font-medium text-gray-800">
@@ -489,7 +489,7 @@ const TeacherSettings = () => {
                 type="text"
                 value={tempData.specialization || ""}
                 onChange={(e) => handleProfileChange(e, "specialization")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500 "
               />
             ) : (
               <p className="text-lg font-medium text-gray-800">
@@ -532,7 +532,7 @@ const TeacherSettings = () => {
               <textarea
                 value={tempData.qualifications || ""}
                 onChange={(e) => handleProfileChange(e, "qualifications")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg "
                 rows={4}
               />
             ) : (
@@ -577,7 +577,7 @@ const TeacherSettings = () => {
                 type="url"
                 value={tempData.linkedin_url || ""}
                 onChange={(e) => handleProfileChange(e, "linkedin_url")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500 "
               />
             ) : (
               <p className="text-lg font-medium text-gray-800">
@@ -619,7 +619,7 @@ const TeacherSettings = () => {
                 type="number"
                 value={tempData.hourly_rate || ""}
                 onChange={(e) => handleProfileChange(e, "hourly_rate")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500 "
               />
             ) : (
               <p className="text-lg font-medium text-gray-800">
@@ -675,7 +675,7 @@ const TeacherSettings = () => {
                           value={passwordData.currentPassword}
                           onChange={handlePasswordChange}
                           required
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 pr-10"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500  pr-10"
                         />
                         <button
                           type="button"
@@ -708,7 +708,7 @@ const TeacherSettings = () => {
                           onChange={handlePasswordChange}
                           required
                           minLength="6"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 pr-10"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500 pr-10"
                         />
                         <button
                           type="button"
@@ -740,12 +740,12 @@ const TeacherSettings = () => {
                           value={passwordData.confirmPassword}
                           onChange={handlePasswordChange}
                           required
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 pr-10"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500  pr-10"
                         />
                         <button
                           type="button"
                           onClick={() => togglePasswordVisibility("confirm")}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 "
                         >
                           {showConfirmPassword ? (
                             <FiEye size={18} />

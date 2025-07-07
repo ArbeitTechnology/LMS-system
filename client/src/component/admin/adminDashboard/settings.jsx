@@ -9,18 +9,18 @@ const Settings = () => {
   const [profile, setProfile] = useState({
     name: "",
     email: "",
-    avatarColor: "bg-gradient-to-r from-purple-500 to-pink-500"
+    avatarColor: "bg-gradient-to-r from-purple-500 to-pink-500",
   });
   const [editMode, setEditMode] = useState({
     name: false,
-    email: false
+    email: false,
   });
   const [tempProfile, setTempProfile] = useState({});
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -37,8 +37,8 @@ const Settings = () => {
           "http://localhost:3500/api/auth/admin",
           {
             headers: {
-              Authorization: `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 
@@ -47,7 +47,7 @@ const Settings = () => {
           "bg-gradient-to-r from-blue-500 to-teal-400",
           "bg-gradient-to-r from-amber-500 to-pink-500",
           "bg-gradient-to-r from-emerald-500 to-blue-500",
-          "bg-gradient-to-r from-violet-500 to-fuchsia-500"
+          "bg-gradient-to-r from-violet-500 to-fuchsia-500",
         ];
         const randomGradient =
           gradients[Math.floor(Math.random() * gradients.length)];
@@ -55,7 +55,7 @@ const Settings = () => {
         setProfile({
           name: response.data.username || "Admin User",
           email: response.data.email || "admin@example.com",
-          avatarColor: randomGradient
+          avatarColor: randomGradient,
         });
       } catch (err) {
         console.error("Failed to fetch profile:", err);
@@ -94,8 +94,8 @@ const Settings = () => {
         { [field]: tempProfile[field] },
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -148,12 +148,12 @@ const Settings = () => {
         "http://localhost:3500/api/auth/change-password",
         {
           currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword
+          newPassword: passwordData.newPassword,
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -161,7 +161,7 @@ const Settings = () => {
       setPasswordData({
         currentPassword: "",
         newPassword: "",
-        confirmPassword: ""
+        confirmPassword: "",
       });
       setShowPasswordChange(false);
     } catch (err) {
@@ -241,7 +241,7 @@ const Settings = () => {
                   type="text"
                   value={tempProfile.name || ""}
                   onChange={(e) => handleProfileChange(e, "name")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500 "
                 />
               ) : (
                 <p className="text-lg font-medium text-gray-800">
@@ -283,7 +283,7 @@ const Settings = () => {
                   type="email"
                   value={tempProfile.email || ""}
                   onChange={(e) => handleProfileChange(e, "email")}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500 "
                 />
               ) : (
                 <p className="text-lg font-medium text-gray-800">
@@ -339,7 +339,7 @@ const Settings = () => {
                             value={passwordData.currentPassword}
                             onChange={handlePasswordChange}
                             required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 pr-10"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500  pr-10"
                           />
                           <button
                             type="button"
@@ -372,7 +372,7 @@ const Settings = () => {
                             onChange={handlePasswordChange}
                             required
                             minLength="6"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 pr-10"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500  pr-10"
                           />
                           <button
                             type="button"
@@ -404,7 +404,7 @@ const Settings = () => {
                             value={passwordData.confirmPassword}
                             onChange={handlePasswordChange}
                             required
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 pr-10"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-gray-500  pr-10"
                           />
                           <button
                             type="button"

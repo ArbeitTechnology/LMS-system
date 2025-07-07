@@ -11,7 +11,7 @@ import {
   FiChevronDown,
   FiChevronUp,
   FiLogOut,
-  FiUser
+  FiUser,
 } from "react-icons/fi";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -22,13 +22,13 @@ const Sidebar = ({
   activeView,
   setActiveView,
   notificationCount,
-  setNotificationCount
+  setNotificationCount,
 }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [adminData, setAdminData] = useState({
     name: "Loading...",
     email: "loading...@example.com",
-    avatarColor: "bg-gradient-to-r from-purple-500 to-pink-500"
+    avatarColor: "bg-gradient-to-r from-purple-500 to-pink-500",
   });
   const [loading, setLoading] = useState(true);
   const [expandedMenus, setExpandedMenus] = useState({});
@@ -46,8 +46,8 @@ const Sidebar = ({
           "http://localhost:3500/api/auth/admin",
           {
             headers: {
-              Authorization: `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 
@@ -56,7 +56,7 @@ const Sidebar = ({
           "bg-gradient-to-r from-blue-500 to-teal-400",
           "bg-gradient-to-r from-amber-500 to-pink-500",
           "bg-gradient-to-r from-emerald-500 to-blue-500",
-          "bg-gradient-to-r from-violet-500 to-fuchsia-500"
+          "bg-gradient-to-r from-violet-500 to-fuchsia-500",
         ];
         const randomGradient =
           gradients[Math.floor(Math.random() * gradients.length)];
@@ -64,7 +64,7 @@ const Sidebar = ({
         setAdminData({
           name: response.data.username || "Admin User",
           email: response.data.email || "admin@example.com",
-          avatarColor: randomGradient
+          avatarColor: randomGradient,
         });
 
         // Fetch notifications
@@ -72,8 +72,8 @@ const Sidebar = ({
           "http://localhost:3500/api/auth/notifications",
           {
             headers: {
-              Authorization: `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 
@@ -100,8 +100,8 @@ const Sidebar = ({
       icon: <FiUser />,
       children: [
         { name: "Create Teacher", component: "TeacherRegistration" },
-        { name: "List Teacher", component: "teacherList" }
-      ]
+        { name: "List Teacher", component: "teacherList" },
+      ],
     },
     {
       name: "notifications",
@@ -119,9 +119,9 @@ const Sidebar = ({
           )}
         </div>
       ),
-      component: "notifications"
+      component: "notifications",
     },
-    { name: "settings", icon: <FiSettings />, component: "settings" }
+    { name: "settings", icon: <FiSettings />, component: "settings" },
   ];
 
   // Add Subadmin menu only for Admins
@@ -131,15 +131,15 @@ const Sidebar = ({
       icon: <FiUsers />,
       children: [
         { name: "create subadmin", component: "subadminCreate" },
-        { name: "list subadmin", component: "subadminList" }
-      ]
+        { name: "list subadmin", component: "subadminList" },
+      ],
     });
   }
 
   const toggleMenu = (menuName) => {
     setExpandedMenus((prev) => ({
       ...prev,
-      [menuName]: !prev[menuName]
+      [menuName]: !prev[menuName],
     }));
   };
 
@@ -177,7 +177,7 @@ const Sidebar = ({
           <motion.h1
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent"
+            className="text-xl font-bold text-black"
           >
             {role === "admin" ? "Admin Portal" : "Sub Admin Portal"}
           </motion.h1>
