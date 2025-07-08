@@ -12,6 +12,7 @@ import {
   FiChevronUp,
   FiLogOut,
   FiUser,
+  FiLayers,
 } from "react-icons/fi";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -100,7 +101,23 @@ const Sidebar = ({
       icon: <FiUser />,
       children: [
         { name: "Create Teacher", component: "TeacherRegistration" },
-        { name: "List Teacher", component: "teacherList" },
+        { name: "Teachers List ", component: "teacherList" },
+      ],
+    },
+    {
+      name: "Students",
+      icon: <FiUser />,
+      children: [
+        { name: "Create Student", component: "StudentRegistration" },
+        { name: "Students List", component: "studentList" },
+      ],
+    },
+    {
+      name: "Courses",
+      icon: <FiLayers />,
+      children: [
+        { name: "Create Courses", component: "createCourse" },
+        { name: "Course List", component: "courseList" },
       ],
     },
     {
