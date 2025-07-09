@@ -38,19 +38,7 @@ const App = () => {
 
         <Route
           path="/admin/dashboard"
-          element={
-            isAuthenticated() ? (
-              role === "admin" ? (
-                <AdminDashboard />
-              ) : role === "subadmin" ? (
-                <AdminDashboard />
-              ) : (
-                <Navigate to="/admin" replace />
-              )
-            ) : (
-              <Navigate to="/admin" replace />
-            )
-          }
+          element={<AdminDashboard/>}
         />
 
         {/* <Route path="*" element={<Navigate to="/admin" replace />} /> */}

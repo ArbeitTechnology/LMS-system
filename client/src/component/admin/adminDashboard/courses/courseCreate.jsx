@@ -19,6 +19,7 @@ import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 
 const CourseCreator = () => {
+  const base_url = import.meta.env.VITE_API_KEY_Base_URL;
   const [courseType, setCourseType] = useState(null);
   const [courseData, setCourseData] = useState({
     title: "",
@@ -367,7 +368,7 @@ const CourseCreator = () => {
     }));
   };
 
-  const publishCourse = async () => {
+ const publishCourse = async () => {
     try {
       // Validate required fields
       if (
@@ -386,6 +387,48 @@ const CourseCreator = () => {
         throw new Error("Please set a price for premium courses");
       }
 
+      // Validate content items
+      for (const item of courseData.content) {
+        if (!item.title) {
+          throw new Error(`Please add a title for all content items`);
+        }
+
+        if (item.type === "tutorial") {
+          if (courseType === "free" && !item.youtubeLink) {
+            throw new Error(`Please add a YouTube link for tutorial "${item.title}"`);
+          }
+          if (courseType === "premium" && !item.content) {
+            throw new Error(`Please upload a video for tutorial "${item.title}"`);
+          }
+        }
+
+        if (item.type === "live" && !item.meetingLink) {
+          throw new Error(`Please add a meeting link for live class "${item.title}"`);
+        }
+
+        if (item.type === "quiz") {
+          if (item.questions.length === 0) {
+            throw new Error(`Please add at least one question to quiz "${item.title}"`);
+          }
+          for (const question of item.questions) {
+            if (!question.question) {
+              throw new Error(`Please add question text for all questions in quiz "${item.title}"`);
+            }
+            if (["mcq-single", "mcq-multiple"].includes(question.type)) {
+              if (question.options.length < 2) {
+                throw new Error(`Please add at least 2 options for MCQ questions in quiz "${item.title}"`);
+              }
+              if (question.type === "mcq-single" && question.correctAnswer === undefined) {
+                throw new Error(`Please select a correct answer for all MCQ questions in quiz "${item.title}"`);
+              }
+              if (question.type === "mcq-multiple" && (!Array.isArray(question.correctAnswer) || question.correctAnswer.length === 0)) {
+                throw new Error(`Please select at least one correct answer for multiple-choice questions in quiz "${item.title}"`);
+              }
+            }
+          }
+        }
+      }
+
       // Prepare form data for upload
       const formData = new FormData();
       formData.append("title", courseData.title);
@@ -393,22 +436,33 @@ const CourseCreator = () => {
       formData.append("thumbnail", courseData.thumbnail);
       formData.append("type", courseType);
       formData.append("price", courseType === "premium" ? courseData.price : 0);
+      formData.append("content", JSON.stringify(courseData.content));
 
       // Add attachments
       courseData.attachments.forEach((file, index) => {
         formData.append(`attachments[${index}]`, file);
       });
 
-      // Add content (simplified for example)
-      formData.append("content", JSON.stringify(courseData.content));
+      // Add content files (videos and thumbnails for premium courses)
+      if (courseType === "premium") {
+        courseData.content.forEach((item, index) => {
+          if (item.type === "tutorial" && item.content) {
+            formData.append(`contentVideos[${index}]`, item.content);
+          }
+          if (item.type === "live" && item.thumbnail) {
+            formData.append(`contentThumbnails[${index}]`, item.thumbnail);
+          }
+        });
+      }
 
       // Show loading toast
       const loadingToast = toast.loading("Publishing course...");
 
       // Make API call
-      const response = await axios.post(API_URL, formData, {
+      const response = await axios.post(`${base_url}/api/admin/courses`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Assuming you store token in localStorage
         },
       });
 

@@ -9,6 +9,10 @@ const {
 const Teacher = require("../models/Teacher");
 const bcrypt = require('bcryptjs');
 const Student = require("../models/Student");
+const Course = require("../models/Course");
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 // Example of a protected admin route
 Adminrouter.get("/", authenticateToken, authorizeAdmin, (req, res) => {
     try {
@@ -594,4 +598,482 @@ Adminrouter.delete("/delete-all-students", authenticateToken, authorizeAdmin, as
         });
     }
 });
+
+
+// -------------------------------------courses-routes----------------------------------------
+
+
+// Configure storage for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, './public/courses');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 100 * 1024 * 1024 } // 100MB limit
+});
+
+// Create a new course
+Adminrouter.post(
+  '/courses',
+  [
+    authenticateToken,
+    authorizeAdmin,
+    upload.fields([
+      { name: 'thumbnail', maxCount: 1 },
+      { name: 'attachments', maxCount: 10 },
+      { name: 'contentThumbnails', maxCount: 10 },
+      { name: 'contentVideos', maxCount: 10 }
+    ])
+  ],
+  async (req, res) => {
+    try {
+      const {
+        title,
+        description,
+        type,
+        price,
+        content,
+        categories,
+        requirements,
+        whatYouWillLearn,
+        level
+      } = req.body;
+
+      // Validate required fields
+      if (!title || !description || !type || !content) {
+        return res.status(400).json({
+          success: false,
+          message: 'Title, description, type, and content are required'
+        });
+      }
+
+      if (type === 'premium' && (!price || isNaN(price))) {
+        return res.status(400).json({
+          success: false,
+          message: 'Price is required for premium courses'
+        });
+      }
+
+      // Handle thumbnail upload
+      let thumbnailData = null;
+      if (req.files.thumbnail) {
+        const thumbnailFile = req.files.thumbnail[0];
+        thumbnailData = {
+          filename: thumbnailFile.originalname,
+          path: thumbnailFile.path,
+          size: thumbnailFile.size,
+          mimetype: thumbnailFile.mimetype
+        };
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Course thumbnail is required'
+        });
+      }
+
+      // Parse the content array if it's a string
+      let contentItems = content;
+      if (typeof content === 'string') {
+        try {
+          contentItems = JSON.parse(content);
+        } catch (e) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid content format'
+          });
+        }
+      }
+
+      // Create the course
+      const newCourse = new Course({
+        title,
+        description,
+        instructor: req.user.id, // Assuming the admin is creating the course
+        thumbnail: thumbnailData,
+        type,
+        price: type === 'premium' ? parseFloat(price) : 0,
+        content: contentItems,
+        categories: categories ? JSON.parse(categories) : [],
+        requirements: requirements ? requirements.split(',') : [],
+        whatYouWillLearn: whatYouWillLearn ? whatYouWillLearn.split(',') : [],
+        level: level || 'beginner',
+        status: 'draft' // Default to draft, admin can publish later
+      });
+
+      await newCourse.save();
+
+      res.status(201).json({
+        success: true,
+        message: 'Course created successfully',
+        data: newCourse
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error while creating course'
+      });
+    }
+  }
+);
+
+// Get all courses
+Adminrouter.get('/courses', authenticateToken, authorizeAdmin, async (req, res) => {
+  try {
+    const { status, type, instructor } = req.query;
+    const filter = {};
+    
+    if (status) filter.status = status;
+    if (type) filter.type = type;
+    if (instructor) filter.instructor = instructor;
+
+    const courses = await Course.find(filter)
+      .populate('instructor', 'name email')
+      .populate('studentsEnrolled', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: courses.length,
+      data: courses
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching courses'
+    });
+  }
+});
+
+// Get single course by ID
+Adminrouter.get('/courses/:id', authenticateToken, authorizeAdmin, async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id)
+      .populate('instructor', 'name email')
+      .populate('studentsEnrolled', 'name email');
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: course
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching course'
+    });
+  }
+});
+
+// Update course
+Adminrouter.put(
+  '/courses/:id',
+  [
+    authenticateToken,
+    authorizeAdmin,
+    upload.fields([
+      { name: 'thumbnail', maxCount: 1 },
+      { name: 'attachments', maxCount: 10 },
+      { name: 'contentThumbnails', maxCount: 10 },
+      { name: 'contentVideos', maxCount: 10 }
+    ])
+  ],
+  async (req, res) => {
+    try {
+      const {
+        title,
+        description,
+        type,
+        price,
+        content,
+        categories,
+        requirements,
+        whatYouWillLearn,
+        level,
+        status
+      } = req.body;
+
+      const course = await Course.findById(req.params.id);
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: 'Course not found'
+        });
+      }
+
+      // Handle thumbnail update
+      if (req.files.thumbnail) {
+        const thumbnailFile = req.files.thumbnail[0];
+        course.thumbnail = {
+          filename: thumbnailFile.originalname,
+          path: thumbnailFile.path,
+          size: thumbnailFile.size,
+          mimetype: thumbnailFile.mimetype
+        };
+      }
+
+      // Update fields
+      if (title) course.title = title;
+      if (description) course.description = description;
+      if (type) course.type = type;
+      if (price) course.price = parseFloat(price);
+      if (content) course.content = typeof content === 'string' ? JSON.parse(content) : content;
+      if (categories) course.categories = typeof categories === 'string' ? JSON.parse(categories) : categories;
+      if (requirements) course.requirements = typeof requirements === 'string' ? requirements.split(',') : requirements;
+      if (whatYouWillLearn) course.whatYouWillLearn = typeof whatYouWillLearn === 'string' ? whatYouWillLearn.split(',') : whatYouWillLearn;
+      if (level) course.level = level;
+      if (status) course.status = status;
+
+      await course.save();
+
+      res.json({
+        success: true,
+        message: 'Course updated successfully',
+        data: course
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error while updating course'
+      });
+    }
+  }
+);
+
+// Change course status
+Adminrouter.put('/courses/:id/status', authenticateToken, authorizeAdmin, async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!['draft', 'active', 'inactive'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status value'
+      });
+    }
+
+    const course = await Course.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Course status changed to ${status}`,
+      data: course
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating course status'
+    });
+  }
+});
+
+// Delete course
+Adminrouter.delete('/courses/:id', authenticateToken, authorizeAdmin, async (req, res) => {
+  try {
+    const course = await Course.findByIdAndDelete(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // TODO: Delete associated files from storage
+
+    res.json({
+      success: true,
+      message: 'Course deleted successfully'
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while deleting course'
+    });
+  }
+});
+
+// Get course analytics
+Adminrouter.get('/courses/:id/analytics', authenticateToken, authorizeAdmin, async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id)
+      .populate('studentsEnrolled', 'name email')
+      .populate('ratings.user', 'name');
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    const analytics = {
+      totalStudents: course.studentsEnrolled.length,
+      averageRating: course.averageRating,
+      totalRatings: course.ratings.length,
+      ratingDistribution: [1, 2, 3, 4, 5].map(star => ({
+        star,
+        count: course.ratings.filter(r => r.rating === star).length
+      })),
+      recentStudents: course.studentsEnrolled.slice(0, 5),
+      recentReviews: course.ratings
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 5)
+        .map(r => ({
+          user: r.user,
+          rating: r.rating,
+          review: r.review,
+          date: r.createdAt
+        }))
+    };
+
+    res.json({
+      success: true,
+      data: analytics
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching course analytics'
+    });
+  }
+});
+
+// Get all courses by status
+Adminrouter.get('/courses/status/:status', authenticateToken, authorizeAdmin, async (req, res) => {
+  try {
+    const { status } = req.params;
+    
+    if (!['draft', 'active', 'inactive'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status value'
+      });
+    }
+
+    const courses = await Course.find({ status })
+      .populate('instructor', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: courses.length,
+      data: courses
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching courses by status'
+    });
+  }
+});
+
+// Publish course (change status from draft to active)
+Adminrouter.put('/courses/:id/publish', authenticateToken, authorizeAdmin, async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    if (course.status !== 'draft') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only draft courses can be published'
+      });
+    }
+
+    course.status = 'active';
+    await course.save();
+
+    res.json({
+      success: true,
+      message: 'Course published successfully',
+      data: course
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while publishing course'
+    });
+  }
+});
+
+// Unpublish course (change status to inactive)
+Adminrouter.put('/courses/:id/unpublish', authenticateToken, authorizeAdmin, async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    if (course.status !== 'active') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only active courses can be unpublished'
+      });
+    }
+
+    course.status = 'inactive';
+    await course.save();
+
+    res.json({
+      success: true,
+      message: 'Course unpublished successfully',
+      data: course
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while unpublishing course'
+    });
+  }
+});
+
+// ------------------------------------courses-routes-------------------------------------------------
 module.exports = Adminrouter;
