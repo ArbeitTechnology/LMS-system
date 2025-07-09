@@ -9,10 +9,14 @@ import {
   FiDollarSign,
   FiImage,
   FiVideo,
+  FiChevronDown,
+  FiChevronUp,
 } from "react-icons/fi";
 import { Editor } from "@toast-ui/react-editor";
 import "@toast-ui/editor/dist/toastui-editor.css";
 import colorSyntax from "@toast-ui/editor-plugin-color-syntax";
+import toast, { Toaster } from "react-hot-toast";
+import axios from "axios";
 
 const CourseCreator = () => {
   const [courseType, setCourseType] = useState(null);
@@ -24,8 +28,18 @@ const CourseCreator = () => {
     content: [],
     price: "",
   });
+  const [expandedSections, setExpandedSections] = useState({});
 
   const editorRefs = useRef({});
+
+  const API_URL = "https://your-api-endpoint.com/courses";
+  // Toggle section expansion
+  const toggleSection = (id) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   const addTutorial = (isPremium = false) => {
     const newTutorial = {
@@ -35,10 +49,15 @@ const CourseCreator = () => {
       description: "",
       content: isPremium ? null : "",
       youtubeLink: !isPremium ? "" : null,
+      isExpanded: true, // New tutorials are expanded by default
     };
     setCourseData((prev) => ({
       ...prev,
       content: [...prev.content, newTutorial],
+    }));
+    setExpandedSections((prev) => ({
+      ...prev,
+      [newTutorial.id]: true,
     }));
   };
 
@@ -58,10 +77,15 @@ const CourseCreator = () => {
           answer: "",
         },
       ],
+      isExpanded: true, // New quizzes are expanded by default
     };
     setCourseData((prev) => ({
       ...prev,
       content: [...prev.content, newQuiz],
+    }));
+    setExpandedSections((prev) => ({
+      ...prev,
+      [newQuiz.id]: true,
     }));
   };
 
@@ -74,10 +98,15 @@ const CourseCreator = () => {
       thumbnail: null,
       meetingLink: "",
       schedule: new Date().toISOString().slice(0, 16),
+      isExpanded: true, // New live classes are expanded by default
     };
     setCourseData((prev) => ({
       ...prev,
       content: [...prev.content, newLiveClass],
+    }));
+    setExpandedSections((prev) => ({
+      ...prev,
+      [newLiveClass.id]: true,
     }));
   };
 
@@ -338,18 +367,75 @@ const CourseCreator = () => {
     }));
   };
 
-  const publishCourse = () => {
-    console.log("Course published:", courseData);
-    alert(`Course "${courseData.title}" published successfully!`);
-    setCourseData({
-      title: "",
-      description: "",
-      thumbnail: null,
-      attachments: [],
-      content: [],
-      price: "",
-    });
-    setCourseType(null);
+  const publishCourse = async () => {
+    try {
+      // Validate required fields
+      if (
+        !courseData.title ||
+        !courseData.description ||
+        !courseData.thumbnail
+      ) {
+        throw new Error("Please fill all required fields");
+      }
+
+      if (courseData.content.length === 0) {
+        throw new Error("Please add at least one content item");
+      }
+
+      if (courseType === "premium" && !courseData.price) {
+        throw new Error("Please set a price for premium courses");
+      }
+
+      // Prepare form data for upload
+      const formData = new FormData();
+      formData.append("title", courseData.title);
+      formData.append("description", courseData.description);
+      formData.append("thumbnail", courseData.thumbnail);
+      formData.append("type", courseType);
+      formData.append("price", courseType === "premium" ? courseData.price : 0);
+
+      // Add attachments
+      courseData.attachments.forEach((file, index) => {
+        formData.append(`attachments[${index}]`, file);
+      });
+
+      // Add content (simplified for example)
+      formData.append("content", JSON.stringify(courseData.content));
+
+      // Show loading toast
+      const loadingToast = toast.loading("Publishing course...");
+
+      // Make API call
+      const response = await axios.post(API_URL, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // Success handling
+      toast.dismiss(loadingToast);
+      toast.success(`Course "${courseData.title}" published successfully!`);
+
+      // Reset form
+      setCourseData({
+        title: "",
+        description: "",
+        thumbnail: null,
+        attachments: [],
+        content: [],
+        price: "",
+      });
+      setCourseType(null);
+      setExpandedSections({});
+    } catch (error) {
+      toast.dismiss();
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to publish course"
+      );
+      console.error("Publish error:", error);
+    }
   };
 
   return (
@@ -470,21 +556,44 @@ const CourseCreator = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Course Thumbnail *
                   </label>
-                  <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors inline-flex items-center">
-                    <FiImage className="mr-2" />
-                    {courseData.thumbnail
-                      ? courseData.thumbnail.name
-                      : "Select Thumbnail Image"}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleThumbnailUpload}
-                      className="hidden"
-                    />
-                  </label>
+                  {/* Added flex container for thumbnail and remove button */}
+                  <div className="w-full flex items-center gap-4 bg-gray-100 hover:bg-gray-200 p-3 rounded-lg">
+                    <label className="cursor-pointer flex items-center w-full gap-4">
+                      <FiImage className="text-xl text-gray-600" />
+                      <span className="text-md flex-1 text-gray-700">
+                        {courseData.thumbnail
+                          ? courseData.thumbnail.name
+                          : "Select Thumbnail Image"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleThumbnailUpload}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {/* Remove button, appears only when thumbnail exists */}
+                    {courseData.thumbnail && (
+                      <button
+                        onClick={() =>
+                          setCourseData((prev) => ({
+                            ...prev,
+                            thumbnail: null,
+                          }))
+                        }
+                        className="text-gray-400 hover:text-red-500 p-3 rounded-full flex items-center justify-center"
+                        type="button"
+                      >
+                        <FiTrash2 size={20} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Existing file info display remains unchanged */}
                   {courseData.thumbnail && (
                     <div className="mt-2 text-sm text-gray-500">
-                      Selected: {courseData.thumbnail.name} (
+                      Selected Image: {courseData.thumbnail.name} (
                       {(courseData.thumbnail.size / (1024 * 1024)).toFixed(2)}{" "}
                       MB)
                     </div>
@@ -566,524 +675,591 @@ const CourseCreator = () => {
                     transition={{ duration: 0.3 }}
                     className="border border-gray-200 rounded-lg p-6 relative hover:border-gray-500"
                   >
-                    <button
-                      onClick={() => removeContentItem(item.id)}
-                      className="absolute top-4 right-4 text-gray-400 hover:text-red-500"
+                    <div
+                      className="flex justify-between items-center p-4 bg-gray-50 cursor-pointer"
+                      onClick={() => toggleSection(item.id)}
                     >
-                      <FiTrash2 />
-                    </button>
-
-                    {item.type === "tutorial" ? (
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-medium text-gray-800">
-                          Tutorial {index + 1}
+                      <div className="flex items-center">
+                        <h3 className="font-medium text-gray-800">
+                          {index + 1}.{" "}
+                          {item.type === "tutorial"
+                            ? "Tutorial"
+                            : item.type === "quiz"
+                            ? "Quiz"
+                            : "Live Class"}
                         </h3>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Title *
-                          </label>
-                          <input
-                            type="text"
-                            value={item.title}
-                            onChange={(e) =>
-                              handleContentChange(
-                                item.id,
-                                "title",
-                                e.target.value
-                              )
-                            }
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Description
-                          </label>
-                          <Editor
-                            initialValue={item.description}
-                            previewStyle="vertical"
-                            height="150px"
-                            initialEditType="wysiwyg"
-                            useCommandShortcut={true}
-                            plugins={[colorSyntax]}
-                            ref={(el) =>
-                              (editorRefs.current[`tutorial-${item.id}`] = el)
-                            }
-                            onChange={() => {
-                              const markdown = editorRefs.current[
-                                `tutorial-${item.id}`
-                              ]
-                                ?.getInstance()
-                                .getMarkdown();
-                              handleContentChange(
-                                item.id,
-                                "description",
-                                markdown
-                              );
-                            }}
-                          />
-                        </div>
-                        {courseType === "free" ? (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              YouTube Video Link *
-                            </label>
-                            <div className="flex items-center">
-                              <FiYoutube className="text-red-500 mr-2 text-xl" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeContentItem(item.id);
+                          }}
+                          className="text-gray-400 hover:text-red-500"
+                        >
+                          <FiTrash2 />
+                        </button>
+                        {expandedSections[item.id] ? (
+                          <FiChevronUp className="text-gray-500" />
+                        ) : (
+                          <FiChevronDown className="text-gray-500" />
+                        )}
+                      </div>
+                    </div>
+                    {expandedSections[item.id] && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="p-6"
+                      >
+                        {item.type === "tutorial" ? (
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Title *
+                              </label>
                               <input
-                                type="url"
-                                value={item.youtubeLink}
+                                type="text"
+                                value={item.title}
                                 onChange={(e) =>
                                   handleContentChange(
                                     item.id,
-                                    "youtubeLink",
+                                    "title",
                                     e.target.value
                                   )
                                 }
-                                placeholder="https://www.youtube.com/watch?v=..."
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Description
+                              </label>
+                              <Editor
+                                initialValue={item.description}
+                                previewStyle="vertical"
+                                height="150px"
+                                initialEditType="wysiwyg"
+                                useCommandShortcut={true}
+                                plugins={[colorSyntax]}
+                                ref={(el) =>
+                                  (editorRefs.current[`tutorial-${item.id}`] =
+                                    el)
+                                }
+                                onChange={() => {
+                                  const markdown = editorRefs.current[
+                                    `tutorial-${item.id}`
+                                  ]
+                                    ?.getInstance()
+                                    .getMarkdown();
+                                  handleContentChange(
+                                    item.id,
+                                    "description",
+                                    markdown
+                                  );
+                                }}
+                              />
+                            </div>
+                            {courseType === "free" ? (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  YouTube Video Link *
+                                </label>
+                                <div className="flex items-center">
+                                  <FiYoutube className="text-red-500 mr-2 text-xl" />
+                                  <input
+                                    type="url"
+                                    value={item.youtubeLink}
+                                    onChange={(e) =>
+                                      handleContentChange(
+                                        item.id,
+                                        "youtubeLink",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="https://www.youtube.com/watch?v=..."
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
+                                    required
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Upload Video *
+                                </label>
+                                <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors inline-flex items-center">
+                                  <FiUpload className="mr-2" />
+                                  {item.content
+                                    ? item.content.name
+                                    : "Select Video File"}
+                                  <input
+                                    type="file"
+                                    accept="video/*"
+                                    onChange={(e) =>
+                                      handleFileUpload(e, item.id)
+                                    }
+                                    className="hidden"
+                                  />
+                                </label>
+                                {item.content && (
+                                  <div className="mt-2 text-sm text-gray-500">
+                                    Selected: {item.content.name} (
+                                    {(
+                                      item.content.size /
+                                      (1024 * 1024)
+                                    ).toFixed(2)}{" "}
+                                    MB)
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ) : item.type === "live" ? (
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Title *
+                              </label>
+                              <input
+                                type="text"
+                                value={item.title}
+                                onChange={(e) =>
+                                  handleContentChange(
+                                    item.id,
+                                    "title",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Description
+                              </label>
+                              <Editor
+                                initialValue={item.description}
+                                previewStyle="vertical"
+                                height="150px"
+                                initialEditType="wysiwyg"
+                                useCommandShortcut={true}
+                                plugins={[colorSyntax]}
+                                ref={(el) =>
+                                  (editorRefs.current[`live-${item.id}`] = el)
+                                }
+                                onChange={() => {
+                                  const markdown = editorRefs.current[
+                                    `live-${item.id}`
+                                  ]
+                                    ?.getInstance()
+                                    .getMarkdown();
+                                  handleContentChange(
+                                    item.id,
+                                    "description",
+                                    markdown
+                                  );
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Thumbnail Image
+                              </label>
+                              <div className="w-full flex items-center gap-4 bg-gray-100 hover:bg-gray-200 p-3 rounded-lg">
+                                <label className="cursor-pointer flex items-center w-full gap-4">
+                                  <FiImage className="text-md text-gray-600" />
+                                  <span className="text-md flex-1 text-gray-700">
+                                    {item.thumbnail
+                                      ? item.thumbnail.name
+                                      : "Select Thumbnail Image"}
+                                  </span>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) =>
+                                      handleFileUpload(e, item.id, "thumbnail")
+                                    }
+                                    className="hidden"
+                                  />
+                                </label>
+
+                                {/* Remove button, appears only when thumbnail exists */}
+                                {item.thumbnail && (
+                                  <button
+                                    onClick={() =>
+                                      handleContentChange(
+                                        item.id,
+                                        "thumbnail",
+                                        null
+                                      )
+                                    }
+                                    className="text-gray-400 hover:text-red-500 p-3 rounded-full flex items-center justify-center"
+                                    type="button"
+                                  >
+                                    <FiTrash2 size={20} />
+                                  </button>
+                                )}
+                              </div>
+
+                              {item.thumbnail && (
+                                <div className="mt-2 text-sm text-gray-500">
+                                  Selected Image: {item.thumbnail.name} (
+                                  {(
+                                    item.thumbnail.size /
+                                    (1024 * 1024)
+                                  ).toFixed(2)}{" "}
+                                  MB)
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Meeting Link (Zoom/Google Meet)
+                              </label>
+                              <input
+                                type="url"
+                                value={item.meetingLink}
+                                onChange={(e) =>
+                                  handleContentChange(
+                                    item.id,
+                                    "meetingLink",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="https://zoom.us/j/... or https://meet.google.com/..."
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Schedule *
+                              </label>
+                              <input
+                                type="datetime-local"
+                                value={item.schedule}
+                                onChange={(e) =>
+                                  handleContentChange(
+                                    item.id,
+                                    "schedule",
+                                    e.target.value
+                                  )
+                                }
+                                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
                                 required
                               />
                             </div>
                           </div>
                         ) : (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Upload Video *
-                            </label>
-                            <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors inline-flex items-center">
-                              <FiUpload className="mr-2" />
-                              {item.content
-                                ? item.content.name
-                                : "Select Video File"}
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-center"></div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Quiz Title *
+                              </label>
                               <input
-                                type="file"
-                                accept="video/*"
-                                onChange={(e) => handleFileUpload(e, item.id)}
-                                className="hidden"
+                                type="text"
+                                value={item.title}
+                                onChange={(e) =>
+                                  handleContentChange(
+                                    item.id,
+                                    "title",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
+                                required
                               />
-                            </label>
-                            {item.content && (
-                              <div className="mt-2 text-sm text-gray-500">
-                                Selected: {item.content.name} (
-                                {(item.content.size / (1024 * 1024)).toFixed(2)}{" "}
-                                MB)
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ) : item.type === "live" ? (
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-medium text-gray-800">
-                          Live Class {index + 1}
-                        </h3>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Title *
-                          </label>
-                          <input
-                            type="text"
-                            value={item.title}
-                            onChange={(e) =>
-                              handleContentChange(
-                                item.id,
-                                "title",
-                                e.target.value
-                              )
-                            }
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Description
-                          </label>
-                          <Editor
-                            initialValue={item.description}
-                            previewStyle="vertical"
-                            height="150px"
-                            initialEditType="wysiwyg"
-                            useCommandShortcut={true}
-                            plugins={[colorSyntax]}
-                            ref={(el) =>
-                              (editorRefs.current[`live-${item.id}`] = el)
-                            }
-                            onChange={() => {
-                              const markdown = editorRefs.current[
-                                `live-${item.id}`
-                              ]
-                                ?.getInstance()
-                                .getMarkdown();
-                              handleContentChange(
-                                item.id,
-                                "description",
-                                markdown
-                              );
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Thumbnail Image
-                          </label>
-                          <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors inline-flex items-center">
-                            <FiImage className="mr-2" />
-                            {item.thumbnail
-                              ? item.thumbnail.name
-                              : "Select Thumbnail Image"}
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) =>
-                                handleFileUpload(e, item.id, "thumbnail")
-                              }
-                              className="hidden"
-                            />
-                          </label>
-                          {item.thumbnail && (
-                            <div className="mt-2 text-sm text-gray-500">
-                              Selected: {item.thumbnail.name} (
-                              {(item.thumbnail.size / (1024 * 1024)).toFixed(2)}{" "}
-                              MB)
                             </div>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Meeting Link (Zoom/Google Meet)
-                          </label>
-                          <input
-                            type="url"
-                            value={item.meetingLink}
-                            onChange={(e) =>
-                              handleContentChange(
-                                item.id,
-                                "meetingLink",
-                                e.target.value
-                              )
-                            }
-                            placeholder="https://zoom.us/j/... or https://meet.google.com/..."
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Schedule *
-                          </label>
-                          <input
-                            type="datetime-local"
-                            value={item.schedule}
-                            onChange={(e) =>
-                              handleContentChange(
-                                item.id,
-                                "schedule",
-                                e.target.value
-                              )
-                            }
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
-                            required
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-medium text-gray-800">
-                          Quiz {index + 1}
-                        </h3>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Quiz Title *
-                          </label>
-                          <input
-                            type="text"
-                            value={item.title}
-                            onChange={(e) =>
-                              handleContentChange(
-                                item.id,
-                                "title",
-                                e.target.value
-                              )
-                            }
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Description
-                          </label>
-                          <Editor
-                            initialValue={item.description}
-                            previewStyle="vertical"
-                            height="100px"
-                            initialEditType="wysiwyg"
-                            useCommandShortcut={true}
-                            plugins={[colorSyntax]}
-                            ref={(el) =>
-                              (editorRefs.current[`quiz-${item.id}`] = el)
-                            }
-                            onChange={() => {
-                              const markdown = editorRefs.current[
-                                `quiz-${item.id}`
-                              ]
-                                ?.getInstance()
-                                .getMarkdown();
-                              handleContentChange(
-                                item.id,
-                                "description",
-                                markdown
-                              );
-                            }}
-                          />
-                        </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Description
+                              </label>
+                              <Editor
+                                initialValue={item.description}
+                                previewStyle="vertical"
+                                height="150px"
+                                initialEditType="wysiwyg"
+                                useCommandShortcut={true}
+                                plugins={[colorSyntax]}
+                                ref={(el) =>
+                                  (editorRefs.current[`quiz-${item.id}`] = el)
+                                }
+                                onChange={() => {
+                                  const markdown = editorRefs.current[
+                                    `quiz-${item.id}`
+                                  ]
+                                    ?.getInstance()
+                                    .getMarkdown();
+                                  handleContentChange(
+                                    item.id,
+                                    "description",
+                                    markdown
+                                  );
+                                }}
+                              />
+                            </div>
 
-                        <div className="space-y-6">
-                          {item.questions.map((question, qIndex) => (
-                            <div
-                              key={question.id}
-                              className="border-l-4 border-gray-500 pl-4"
-                            >
-                              <div className="flex justify-between items-start mb-2">
-                                <h4 className="font-medium text-gray-800 mb-2">
-                                  Question {qIndex + 1}
-                                </h4>
-                                <div className="flex gap-2">
-                                  <select
-                                    value={question.type}
-                                    onChange={(e) =>
-                                      handleQuestionChange(
-                                        item.id,
-                                        question.id,
-                                        "type",
-                                        e.target.value
-                                      )
-                                    }
-                                    className="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
-                                  >
-                                    <option value="mcq-single">
-                                      Single Choice MCQ
-                                    </option>
-                                    <option value="mcq-multiple">
-                                      Multiple Choice MCQ
-                                    </option>
-                                    <option value="short-answer">
-                                      Short Answer
-                                    </option>
-                                    <option value="broad-answer">
-                                      Broad Answer
-                                    </option>
-                                  </select>
-                                  <button
-                                    onClick={() => {
-                                      setCourseData((prev) => ({
-                                        ...prev,
-                                        content: prev.content.map(
-                                          (contentItem) => {
-                                            if (contentItem.id === item.id) {
-                                              return {
-                                                ...contentItem,
-                                                questions:
-                                                  contentItem.questions.filter(
-                                                    (q) => q.id !== question.id
-                                                  ),
-                                              };
-                                            }
-                                            return contentItem;
-                                          }
-                                        ),
-                                      }));
-                                    }}
-                                    className="text-gray-400 hover:text-red-500"
-                                  >
-                                    <FiTrash2 size={14} />
-                                  </button>
-                                </div>
-                              </div>
-                              <div className="mb-3">
-                                <input
-                                  type="text"
-                                  value={question.question}
-                                  onChange={(e) =>
-                                    handleQuestionChange(
-                                      item.id,
-                                      question.id,
-                                      "question",
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Enter question"
-                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
-                                  required
-                                />
-                              </div>
-
-                              {["mcq-single", "mcq-multiple"].includes(
-                                question.type
-                              ) ? (
-                                <div className="space-y-2">
-                                  {question.options.map((option, oIndex) => (
-                                    <div
-                                      key={oIndex}
-                                      className="flex items-center gap-2"
-                                    >
-                                      <input
-                                        type={
-                                          question.type === "mcq-single"
-                                            ? "radio"
-                                            : "checkbox"
-                                        }
-                                        name={`correct-${question.id}`}
-                                        checked={
-                                          question.type === "mcq-single"
-                                            ? question.correctAnswer === oIndex
-                                            : Array.isArray(
-                                                question.correctAnswer
-                                              ) &&
-                                              question.correctAnswer.includes(
-                                                oIndex
-                                              )
-                                        }
-                                        onChange={() =>
-                                          handleCorrectAnswerChange(
-                                            item.id,
-                                            question.id,
-                                            oIndex
-                                          )
-                                        }
-                                        className="focus:ring-gray-500 focus:border-gray-500"
-                                      />
-                                      <input
-                                        type="text"
-                                        value={option}
+                            <div className="space-y-6">
+                              {item.questions.map((question, qIndex) => (
+                                <div
+                                  key={question.id}
+                                  className="border-l-4 border-gray-500 pl-4"
+                                >
+                                  <div className="flex justify-between items-start mb-2">
+                                    <h4 className="font-medium text-gray-800 mb-2">
+                                      Question {qIndex + 1}
+                                    </h4>
+                                    <div className="flex gap-2">
+                                      <select
+                                        value={question.type}
                                         onChange={(e) =>
-                                          handleOptionChange(
+                                          handleQuestionChange(
                                             item.id,
                                             question.id,
-                                            oIndex,
+                                            "type",
                                             e.target.value
                                           )
                                         }
-                                        placeholder={`Option ${oIndex + 1}`}
-                                        className="flex-1 px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
-                                        required
-                                      />
-                                      {question.options.length > 2 && (
+                                        className="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
+                                      >
+                                        <option value="mcq-single">
+                                          Single Choice MCQ
+                                        </option>
+                                        <option value="mcq-multiple">
+                                          Multiple Choice MCQ
+                                        </option>
+                                        <option value="short-answer">
+                                          Short Answer
+                                        </option>
+                                        <option value="broad-answer">
+                                          Broad Answer
+                                        </option>
+                                      </select>
+                                      <button
+                                        onClick={() => {
+                                          setCourseData((prev) => ({
+                                            ...prev,
+                                            content: prev.content.map(
+                                              (contentItem) => {
+                                                if (
+                                                  contentItem.id === item.id
+                                                ) {
+                                                  return {
+                                                    ...contentItem,
+                                                    questions:
+                                                      contentItem.questions.filter(
+                                                        (q) =>
+                                                          q.id !== question.id
+                                                      ),
+                                                  };
+                                                }
+                                                return contentItem;
+                                              }
+                                            ),
+                                          }));
+                                        }}
+                                        className="text-gray-400 hover:text-red-500"
+                                      >
+                                        <FiTrash2 size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <div className="mb-3">
+                                    <input
+                                      type="text"
+                                      value={question.question}
+                                      onChange={(e) =>
+                                        handleQuestionChange(
+                                          item.id,
+                                          question.id,
+                                          "question",
+                                          e.target.value
+                                        )
+                                      }
+                                      placeholder="Enter question"
+                                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
+                                      required
+                                    />
+                                  </div>
+
+                                  {["mcq-single", "mcq-multiple"].includes(
+                                    question.type
+                                  ) ? (
+                                    <div className="space-y-2">
+                                      {question.options.map(
+                                        (option, oIndex) => (
+                                          <div
+                                            key={oIndex}
+                                            className="flex items-center gap-2"
+                                          >
+                                            <input
+                                              type={
+                                                question.type === "mcq-single"
+                                                  ? "radio"
+                                                  : "checkbox"
+                                              }
+                                              name={`correct-${question.id}`}
+                                              checked={
+                                                question.type === "mcq-single"
+                                                  ? question.correctAnswer ===
+                                                    oIndex
+                                                  : Array.isArray(
+                                                      question.correctAnswer
+                                                    ) &&
+                                                    question.correctAnswer.includes(
+                                                      oIndex
+                                                    )
+                                              }
+                                              onChange={() =>
+                                                handleCorrectAnswerChange(
+                                                  item.id,
+                                                  question.id,
+                                                  oIndex
+                                                )
+                                              }
+                                              className="focus:ring-gray-500 focus:border-gray-500"
+                                            />
+                                            <input
+                                              type="text"
+                                              value={option}
+                                              onChange={(e) =>
+                                                handleOptionChange(
+                                                  item.id,
+                                                  question.id,
+                                                  oIndex,
+                                                  e.target.value
+                                                )
+                                              }
+                                              placeholder={`Option ${
+                                                oIndex + 1
+                                              }`}
+                                              className="flex-1 px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
+                                              required
+                                            />
+                                            {question.options.length > 2 && (
+                                              <button
+                                                onClick={() =>
+                                                  removeOption(
+                                                    item.id,
+                                                    question.id,
+                                                    oIndex
+                                                  )
+                                                }
+                                                className="text-gray-400 hover:text-red-500"
+                                              >
+                                                <FiTrash2 size={14} />
+                                              </button>
+                                            )}
+                                          </div>
+                                        )
+                                      )}
+                                      <div className="flex justify-end">
                                         <button
                                           onClick={() =>
-                                            removeOption(
-                                              item.id,
-                                              question.id,
-                                              oIndex
-                                            )
+                                            addOption(item.id, question.id)
                                           }
-                                          className="text-gray-400 hover:text-red-500"
+                                          className="text-gray-600 hover:text-gray-800 flex items-center text-sm mt-2 bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded"
                                         >
-                                          <FiTrash2 size={14} />
+                                          <FiPlus className="mr-1" /> Add Option
                                         </button>
-                                      )}
+                                      </div>
                                     </div>
-                                  ))}
-                                  <div className="flex justify-end">
-                                    <button
-                                      onClick={() =>
-                                        addOption(item.id, question.id)
-                                      }
-                                      className="text-gray-600 hover:text-gray-800 flex items-center text-sm mt-2 bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded"
-                                    >
-                                      <FiPlus className="mr-1" /> Add Option
-                                    </button>
-                                  </div>
+                                  ) : question.type === "short-answer" ? (
+                                    <div className="mt-2">
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Answer
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={question.answer}
+                                        onChange={(e) =>
+                                          handleAnswerChange(
+                                            item.id,
+                                            question.id,
+                                            e.target.value
+                                          )
+                                        }
+                                        placeholder="Enter expected short answer"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="mt-2">
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Answer
+                                      </label>
+                                      <Editor
+                                        initialValue={question.answer}
+                                        previewStyle="vertical"
+                                        height="150px"
+                                        initialEditType="wysiwyg"
+                                        useCommandShortcut={true}
+                                        plugins={[colorSyntax]}
+                                        ref={(el) =>
+                                          (editorRefs.current[
+                                            `question-${question.id}`
+                                          ] = el)
+                                        }
+                                        onChange={() => {
+                                          const markdown = editorRefs.current[
+                                            `question-${question.id}`
+                                          ]
+                                            ?.getInstance()
+                                            .getMarkdown();
+                                          handleAnswerChange(
+                                            item.id,
+                                            question.id,
+                                            markdown
+                                          );
+                                        }}
+                                      />
+                                    </div>
+                                  )}
                                 </div>
-                              ) : question.type === "short-answer" ? (
-                                <div className="mt-2">
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Answer
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={question.answer}
-                                    onChange={(e) =>
-                                      handleAnswerChange(
-                                        item.id,
-                                        question.id,
-                                        e.target.value
-                                      )
-                                    }
-                                    placeholder="Enter expected short answer"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 hover:border-gray-500"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="mt-2">
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Answer
-                                  </label>
-                                  <Editor
-                                    initialValue={question.answer}
-                                    previewStyle="vertical"
-                                    height="150px"
-                                    initialEditType="wysiwyg"
-                                    useCommandShortcut={true}
-                                    plugins={[colorSyntax]}
-                                    ref={(el) =>
-                                      (editorRefs.current[
-                                        `question-${question.id}`
-                                      ] = el)
-                                    }
-                                    onChange={() => {
-                                      const markdown = editorRefs.current[
-                                        `question-${question.id}`
-                                      ]
-                                        ?.getInstance()
-                                        .getMarkdown();
-                                      handleAnswerChange(
-                                        item.id,
-                                        question.id,
-                                        markdown
-                                      );
-                                    }}
-                                  />
-                                </div>
-                              )}
+                              ))}
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                  onClick={() =>
+                                    addQuestion(item.id, "mcq-single")
+                                  }
+                                  className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded text-sm flex items-center"
+                                >
+                                  <FiPlus className="mr-1" /> Single Choice
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    addQuestion(item.id, "mcq-multiple")
+                                  }
+                                  className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded text-sm flex items-center"
+                                >
+                                  <FiPlus className="mr-1" /> Multiple Choice
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    addQuestion(item.id, "short-answer")
+                                  }
+                                  className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded text-sm flex items-center"
+                                >
+                                  <FiPlus className="mr-1" /> Short Answer
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    addQuestion(item.id, "broad-answer")
+                                  }
+                                  className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded text-sm flex items-center"
+                                >
+                                  <FiPlus className="mr-1" /> Broad Answer
+                                </button>
+                              </div>
                             </div>
-                          ))}
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              onClick={() => addQuestion(item.id, "mcq-single")}
-                              className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded text-sm flex items-center"
-                            >
-                              <FiPlus className="mr-1" /> Single Choice
-                            </button>
-                            <button
-                              onClick={() =>
-                                addQuestion(item.id, "mcq-multiple")
-                              }
-                              className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded text-sm flex items-center"
-                            >
-                              <FiPlus className="mr-1" /> Multiple Choice
-                            </button>
-                            <button
-                              onClick={() =>
-                                addQuestion(item.id, "short-answer")
-                              }
-                              className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded text-sm flex items-center"
-                            >
-                              <FiPlus className="mr-1" /> Short Answer
-                            </button>
-                            <button
-                              onClick={() =>
-                                addQuestion(item.id, "broad-answer")
-                              }
-                              className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded text-sm flex items-center"
-                            >
-                              <FiPlus className="mr-1" /> Broad Answer
-                            </button>
                           </div>
-                        </div>
-                      </div>
+                        )}
+                      </motion.div>
                     )}
                   </motion.div>
                 ))}

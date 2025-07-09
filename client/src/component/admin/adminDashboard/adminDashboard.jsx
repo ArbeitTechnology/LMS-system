@@ -9,6 +9,7 @@ import Settings from "./settings";
 import StudentAuth from "./student/studentCreate";
 import StudentList from "./student/studentList";
 import CourseCreator from "./courses/courseCreate";
+import CourseList from "./courses/courseList";
 
 const AdminDashboard = () => {
   const [activeView, setActiveView] = useState("dashboard");
@@ -29,6 +30,8 @@ const AdminDashboard = () => {
         return <StudentList />;
       case "createCourse":
         return <CourseCreator />;
+      case "courseList":
+        return <CourseList />;
       case "notifications":
         return <Notifications setNotificationCount={setNotificationCount} />;
       case "settings":
