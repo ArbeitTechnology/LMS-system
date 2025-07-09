@@ -180,7 +180,7 @@ const Settings = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-6"
+        className="bg-white rounded-[10px] shadow-md overflow-hidden border border-gray-100 p-6"
       >
         {/* Header */}
         <div className="w-full mb-8 pb-6 border-b border-gray-200">

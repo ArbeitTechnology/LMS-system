@@ -87,7 +87,7 @@ exports.login = async (req, res) => {
     if (admin.status !== "active") {
       return res.send({
         success: false,
-        message: "Make the status active then you can log in."
+        message: "Your account on approval."
       });
     }
 

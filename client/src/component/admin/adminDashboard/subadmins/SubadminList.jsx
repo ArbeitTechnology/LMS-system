@@ -104,10 +104,10 @@ const SubadminList = () => {
   );
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-8 pb-6 border-b border-gray-200">
-        <h2 className="text-2xl font-bold text-black">Sub-Admin Management</h2>
-        <div className="flex space-x-3">
+    <div className="">
+            <div className="flex justify-between sticky flex justify-between items-center top-0 left-0 py-4 px-[10px] bg-white items-center mb-8  border-b border-gray-200">
+        <h2 className="text-2xl font-bold text-black">Sub-Admin Creation</h2>
+            <div className="flex space-x-3">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -120,7 +120,10 @@ const SubadminList = () => {
         </div>
       </div>
 
-      <div className="mb-6 relative">
+ 
+
+   <div className="p-[20px]">
+   <div className="mb-6 relative ">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <FiSearch className="text-gray-400" />
         </div>
@@ -133,32 +136,32 @@ const SubadminList = () => {
         />
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+      <div className="bg-white rounded-[10px]  shadow-sm overflow-hidden border border-gray-200">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-sm  font-[700] text-gray-500 uppercase tracking-wider"
                 >
                   Username
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-sm  font-[700] text-gray-500 uppercase tracking-wider"
                 >
                   Email
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-sm  font-[700] text-gray-500 uppercase tracking-wider"
                 >
                   Status
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 text-right text-sm  font-[700] text-gray-500 uppercase tracking-wider"
                 >
                   Actions
                 </th>
@@ -265,6 +268,7 @@ const SubadminList = () => {
           </table>
         </div>
       </div>
+   </div>
 
       {/* Delete Confirmation Modal */}
       {confirmDelete && (

@@ -13,14 +13,18 @@ const Course = require("../models/Course");
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const Admin = require("../models/Admin");
 // Example of a protected admin route
-Adminrouter.get("/", authenticateToken, authorizeAdmin, (req, res) => {
+Adminrouter.get("/admin-profile/:id", authenticateToken, authorizeAdmin, async(req, res) => {
     try {
-        // Now you have access to req.admin, req.id, and req.role
+        //admin profile
+        const admindata=await Admin.findById({_id:req.params.id});
+        if(!admindata){
+              return res.send({success:false,message:"Admin not found!"})
+        }
         res.json({ 
             message: "Welcome Admin", 
-            admin: req.admin,
-            role: req.role
+            admin: admindata,
         });
     } catch (error) {
         console.error(error);
