@@ -118,13 +118,19 @@ const CourseList = () => {
     );
     setEditingCourse(null);
   };
-
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen"></div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-15 w-15 border-b-4 border-l-gray-900 border-solid"></div>
+          <p className="mt-2 text-lg text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen  p-2">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
@@ -150,7 +156,7 @@ const CourseList = () => {
           <div className="flex items-center gap-2">
             <FiFilter className="text-gray-600" />
             <select
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+              className="border border-gray-300 rounded-lg px-3 py-2  focus:border-gray-500"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
             >
@@ -220,7 +226,7 @@ const CourseList = () => {
                         <div className="flex items-center">
                           <FiUser className="text-gray-500 mr-2" />
                           <select
-                            className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                            className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:border-gray-500"
                             value={course.teacher?.id || ""}
                             onChange={(e) =>
                               assignTeacher(course.id, parseInt(e.target.value))
