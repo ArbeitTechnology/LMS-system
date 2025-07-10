@@ -368,7 +368,7 @@ const CourseCreator = () => {
     }));
   };
 
- const publishCourse = async () => {
+  const publishCourse = async () => {
     try {
       // Validate required fields
       if (
@@ -395,34 +395,57 @@ const CourseCreator = () => {
 
         if (item.type === "tutorial") {
           if (courseType === "free" && !item.youtubeLink) {
-            throw new Error(`Please add a YouTube link for tutorial "${item.title}"`);
+            throw new Error(
+              `Please add a YouTube link for tutorial "${item.title}"`
+            );
           }
           if (courseType === "premium" && !item.content) {
-            throw new Error(`Please upload a video for tutorial "${item.title}"`);
+            throw new Error(
+              `Please upload a video for tutorial "${item.title}"`
+            );
           }
         }
 
         if (item.type === "live" && !item.meetingLink) {
-          throw new Error(`Please add a meeting link for live class "${item.title}"`);
+          throw new Error(
+            `Please add a meeting link for live class "${item.title}"`
+          );
         }
 
         if (item.type === "quiz") {
           if (item.questions.length === 0) {
-            throw new Error(`Please add at least one question to quiz "${item.title}"`);
+            throw new Error(
+              `Please add at least one question to quiz "${item.title}"`
+            );
           }
           for (const question of item.questions) {
             if (!question.question) {
-              throw new Error(`Please add question text for all questions in quiz "${item.title}"`);
+              throw new Error(
+                `Please add question text for all questions in quiz "${item.title}"`
+              );
             }
             if (["mcq-single", "mcq-multiple"].includes(question.type)) {
               if (question.options.length < 2) {
-                throw new Error(`Please add at least 2 options for MCQ questions in quiz "${item.title}"`);
+                throw new Error(
+                  `Please add at least 2 options for MCQ questions in quiz "${item.title}"`
+                );
               }
-              if (question.type === "mcq-single" && question.correctAnswer === undefined) {
-                throw new Error(`Please select a correct answer for all MCQ questions in quiz "${item.title}"`);
+              if (
+                question.type === "mcq-single" &&
+                question.correctAnswer === undefined
+              ) {
+                throw new Error(
+                  `Please select a correct answer for all MCQ questions in quiz "${item.title}"`
+                );
               }
-              if (question.type === "mcq-multiple" && (!Array.isArray(question.correctAnswer) || question.correctAnswer.length === 0)) {
-                throw new Error(`Please select at least one correct answer for multiple-choice questions in quiz "${item.title}"`);
+              if (
+                question.type === "mcq-multiple" &&
+                (!Array.isArray(question.correctAnswer) ||
+                  question.correctAnswer.length === 0)
+              ) {
+                throw new Error(
+                  `Please select at least one correct answer for multiple-choice questions in quiz "${item.title}"`
+                );
               }
             }
           }
@@ -459,12 +482,16 @@ const CourseCreator = () => {
       const loadingToast = toast.loading("Publishing course...");
 
       // Make API call
-      const response = await axios.post(`${base_url}/api/admin/courses`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // Assuming you store token in localStorage
-        },
-      });
+      const response = await axios.post(
+        `${base_url}/api/admin/courses`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // Assuming you store token in localStorage
+          },
+        }
+      );
 
       // Success handling
       toast.dismiss(loadingToast);
@@ -497,9 +524,9 @@ const CourseCreator = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen p-2"
+      className="min-h-screen p-6"
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-full mx-auto">
         {!courseType ? (
           <div className="flex flex-col items-center justify-center h-[70vh]">
             <h1 className="text-3xl font-bold text-gray-800 mb-8">

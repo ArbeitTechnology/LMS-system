@@ -147,7 +147,7 @@ const TeacherList = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen  text-black p-2"
+      className="min-h-screen  text-black p-6"
     >
       {/* Header Section */}
       <div className="w-full">

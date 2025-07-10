@@ -183,9 +183,9 @@ const StudentAuth = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen flex flex-col items-center p-2 "
+      className="min-h-screen flex flex-col items-center p-6 "
     >
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-full">
         <div className="w-full mb-8 pb-6 border-b border-gray-200">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Student Registration

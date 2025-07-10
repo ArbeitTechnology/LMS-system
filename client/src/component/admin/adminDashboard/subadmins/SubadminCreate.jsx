@@ -9,12 +9,12 @@ const SubadminCreate = () => {
   const [form, setForm] = useState({
     username: "",
     email: "",
-    password: ""
+    password: "",
   });
   const [errors, setErrors] = useState({
     username: "",
     email: "",
-    password: ""
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,12 +82,12 @@ const SubadminCreate = () => {
         "http://localhost:3500/api/auth/subadmin",
         {
           ...form,
-          email: form.email.toLowerCase()
+          email: form.email.toLowerCase(),
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -96,12 +96,12 @@ const SubadminCreate = () => {
           background: "#fff",
           color: "#000",
           border: "1px solid #e5e7eb",
-          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
         },
         iconTheme: {
           primary: "#000",
-          secondary: "#fff"
-        }
+          secondary: "#fff",
+        },
       });
 
       setForm({ username: "", email: "", password: "" });
@@ -112,12 +112,12 @@ const SubadminCreate = () => {
           background: "#fff",
           color: "#000",
           border: "1px solid #e5e7eb",
-          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
         },
         iconTheme: {
           primary: "#ff0000",
-          secondary: "#ffffff"
-        }
+          secondary: "#ffffff",
+        },
       });
     } finally {
       setIsSubmitting(false);
@@ -129,7 +129,7 @@ const SubadminCreate = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="min-h-screen flex flex-col "
+      className="min-h-screen w-full flex flex-col p-6"
     >
       {/* New Header Section */}
       <div className="flex justify-between sticky top-0 left-0 py-4 px-[10px] bg-white items-center mb-8  border-b border-gray-200">

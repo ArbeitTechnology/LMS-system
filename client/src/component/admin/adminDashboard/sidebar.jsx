@@ -32,15 +32,15 @@ const Sidebar = ({
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const role = localStorage.getItem("role");
   const navigate = useNavigate();
-    const admin_info = JSON.parse(localStorage.getItem("admin"));
-    const { adminData, error, fetchAdminProfile } = useAdmin();
-    const token = localStorage.getItem('token'); // or from your auth context
+  const admin_info = JSON.parse(localStorage.getItem("admin"));
+  const { adminData, error, fetchAdminProfile } = useAdmin();
+  const token = localStorage.getItem("token"); // or from your auth context
 
-    useEffect(() => {
-        if (admin_info && token) {
-            fetchAdminProfile(admin_info._id, token);
-        }
-    }, []);
+  useEffect(() => {
+    if (admin_info && token) {
+      fetchAdminProfile(admin_info._id, token);
+    }
+  }, []);
   // useEffect(() => {
   //   const fetchAdminData = async () => {
   //     try {
@@ -204,9 +204,9 @@ const Sidebar = ({
           </motion.h1>
         ) : (
           <div
-            className={`w-8 h-8 rounded-full ${adminData.avatarColor} text-white flex items-center justify-center font-bold shadow-md`}
+            className={`w-8 h-8 rounded-full ${adminData.avatarColor} text-white bg-black flex items-center justify-center font-bold shadow-md`}
           >
-            {adminInitial}
+            {role === "admin" ? "A" : "S"}
           </div>
         )}
 
@@ -309,53 +309,60 @@ const Sidebar = ({
       </nav>
 
       {/* Footer Profile */}
-<div className="p-4 border-t border-gray-200 bg-gray-50">
-  <motion.div 
-    className="flex items-center gap-3"
-    whileHover={{ scale: isOpen ? 1 : 1.02 }}
-  >
-    <div
-      className={`w-10 h-10 rounded-full text-white flex items-center justify-center font-bold shadow-md flex-shrink-0 ${
-        // Different background colors based on first character
-        !adminData?.username ? 'bg-gray-500' :
-        adminData.username.charAt(0).toLowerCase() < 'e' ? 'bg-blue-500' :
-        adminData.username.charAt(0).toLowerCase() < 'j' ? 'bg-green-500' :
-        adminData.username.charAt(0).toLowerCase() < 'p' ? 'bg-yellow-500' :
-        adminData.username.charAt(0).toLowerCase() < 'u' ? 'bg-purple-500' :
-        'bg-pink-500'
-      }`}
-    >
-      {adminData?.username ? adminData.username.charAt(0).toUpperCase() : 'A'}
-    </div>
-    
-    {isOpen && (
-      <motion.div
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="flex-1 min-w-0"
-      >
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-[700] text-gray-900 truncate">
-            {adminData?.username}
-          </p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleLogout}
-            className="p-1 rounded-md hover:bg-gray-100 cursor-pointer transition-colors"
-            title="Logout"
+      <div className="p-4 border-t border-gray-200 bg-gray-50">
+        <motion.div
+          className="flex items-center gap-3"
+          whileHover={{ scale: isOpen ? 1 : 1.02 }}
+        >
+          <div
+            className={`w-10 h-10 rounded-full text-white flex items-center justify-center font-bold shadow-md flex-shrink-0 ${
+              // Different background colors based on first character
+              !adminData?.username
+                ? "bg-gray-500"
+                : adminData.username.charAt(0).toLowerCase() < "e"
+                ? "bg-blue-500"
+                : adminData.username.charAt(0).toLowerCase() < "j"
+                ? "bg-green-500"
+                : adminData.username.charAt(0).toLowerCase() < "p"
+                ? "bg-yellow-500"
+                : adminData.username.charAt(0).toLowerCase() < "u"
+                ? "bg-purple-500"
+                : "bg-pink-500"
+            }`}
           >
-            <FiLogOut className="w-4 h-4 text-gray-500 hover:text-red-500" />
-          </motion.button>
-        </div>
-        
-        <p className="text-xs text-gray-600 font-[600] truncate mt-0.5">
-          {adminData?.email}
-        </p>
-      </motion.div>
-    )}
-  </motion.div>
-</div>
+            {adminData?.username
+              ? adminData.username.charAt(0).toUpperCase()
+              : "A"}
+          </div>
+
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex-1 min-w-0"
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-[700] text-gray-900 truncate">
+                  {adminData?.username}
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleLogout}
+                  className="p-1 rounded-md hover:bg-gray-100 cursor-pointer transition-colors"
+                  title="Logout"
+                >
+                  <FiLogOut className="w-4 h-4 text-gray-500 hover:text-red-500" />
+                </motion.button>
+              </div>
+
+              <p className="text-xs text-gray-600 font-[600] truncate mt-0.5">
+                {adminData?.email}
+              </p>
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
         <motion.div

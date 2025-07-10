@@ -130,13 +130,17 @@ const CourseList = () => {
   }
 
   return (
-    <div className="min-h-screen  p-2">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen  p-8">
+      <div className="max-w-full mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+        <div className="w-full mb-6 pb-4 border-b border-gray-200">
+          <h1 className="text-2xl font-bold text-gray-900 text-left">
             Course Management
           </h1>
+          <p className="text-gray-600 mt-2">
+            Streamline course creation and assign qualified instructors to
+            ensure high-quality learning.
+          </p>
         </div>
 
         {/* Search and Filter */}
