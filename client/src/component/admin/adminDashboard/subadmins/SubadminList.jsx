@@ -247,13 +247,13 @@ const SubadminList = () => {
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap  text-right text-sm font-medium">
                         <div className="flex justify-end">
                           <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => setConfirmDelete(admin._id)}
-                            className="text-red-500 hover:text-red-700"
+                            className="text-red-500 cursor-pointer hover:text-red-700"
                           >
                             <FiTrash2 className="h-5 w-5" />
                           </motion.button>
@@ -270,7 +270,7 @@ const SubadminList = () => {
 
       {/* Delete Confirmation Modal */}
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.4)] bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full border border-gray-200">
             <h3 className="text-lg font-medium text-black mb-4">
               Confirm Delete
@@ -284,7 +284,7 @@ const SubadminList = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setConfirmDelete(null)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 cursor-pointer rounded-lg text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </motion.button>
@@ -292,7 +292,7 @@ const SubadminList = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => deleteSubadmin(confirmDelete)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 text-white cursor-pointer rounded-lg hover:bg-red-700"
               >
                 Delete
               </motion.button>

@@ -23,7 +23,6 @@ export const AdminProvider = ({ children }) => {
             
             if (response.data) {
                 setAdminData(response.data.admin);
-                console.log(response)
             } else {
                 setError(response.data.message || "Admin not found");
             }

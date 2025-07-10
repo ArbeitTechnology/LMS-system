@@ -452,46 +452,49 @@ const CourseCreator = () => {
         }
       }
 
-      // Prepare form data for upload
-      const formData = new FormData();
-      formData.append("title", courseData.title);
-      formData.append("description", courseData.description);
-      formData.append("thumbnail", courseData.thumbnail);
-      formData.append("type", courseType);
-      formData.append("price", courseType === "premium" ? courseData.price : 0);
-      formData.append("content", JSON.stringify(courseData.content));
+  // Prepare form data for upload
+    const formData = new FormData();
+    formData.append("title", courseData.title);
+    formData.append("description", courseData.description);
+    formData.append("thumbnail", courseData.thumbnail);
+    formData.append("type", courseType);
+    formData.append("price", courseType === "premium" ? courseData.price : 0);
+    formData.append("content", JSON.stringify(courseData.content));
+    formData.append("level", "beginner"); // Default level
+    formData.append("status", "draft"); // Default status
+    formData.append("user_id","Admin")
 
-      // Add attachments
-      courseData.attachments.forEach((file, index) => {
-        formData.append(`attachments[${index}]`, file);
-      });
+    // Add attachments
+    courseData.attachments.forEach((file) => {
+      formData.append("attachments", file);
+    });
 
-      // Add content files (videos and thumbnails for premium courses)
-      if (courseType === "premium") {
-        courseData.content.forEach((item, index) => {
-          if (item.type === "tutorial" && item.content) {
-            formData.append(`contentVideos[${index}]`, item.content);
-          }
-          if (item.type === "live" && item.thumbnail) {
-            formData.append(`contentThumbnails[${index}]`, item.thumbnail);
-          }
-        });
-      }
-
-      // Show loading toast
-      const loadingToast = toast.loading("Publishing course...");
-
-      // Make API call
-      const response = await axios.post(
-        `${base_url}/api/admin/courses`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // Assuming you store token in localStorage
-          },
+    // Add content files (videos and thumbnails for premium courses)
+    if (courseType === "premium") {
+      courseData.content.forEach((item) => {
+        if (item.type === "tutorial" && item.content) {
+          formData.append("contentVideos", item.content);
         }
-      );
+        if (item.type === "live" && item.thumbnail) {
+          formData.append("contentThumbnails", item.thumbnail);
+        }
+      });
+    }
+
+    // Show loading toast
+    const loadingToast = toast.loading("Publishing course...");
+
+    // Make API call
+    const response = await axios.post(
+      `${base_url}/api/admin/courses`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
 
       // Success handling
       toast.dismiss(loadingToast);

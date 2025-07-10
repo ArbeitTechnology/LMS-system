@@ -44,7 +44,6 @@ const courseSchema = new Schema({
   instructor: { 
     type: Schema.Types.ObjectId, 
     ref: 'User', 
-    required: true 
   },
   thumbnail: { 
     filename: String,

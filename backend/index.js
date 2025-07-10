@@ -9,13 +9,21 @@ const Studnetauth = require("./routes/Studentauth");
 const app = express();
 const PORT = process.env.PORT || 3500;
 
+// CORS Configuration
+const corsOptions = {
+  origin: "http://localhost:5173", // Allow only this origin
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true, // Allow cookies/session to be sent
+  optionsSuccessStatus: 204 // For legacy browser support
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions)); // Use the CORS configuration
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/auth/student", Studnetauth);
 app.use("/api/admin", Adminrouter);
-
+app.use(express.static("public"))
 // DB Connection
 connectDB();
 
