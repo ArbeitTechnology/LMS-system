@@ -288,7 +288,7 @@ exports.teacherregistration = async (req, res, next) => {
 
     const profilePhotoPath =
       req.files.profile_photo && req.files.profile_photo[0]
-        ? req.files.profile_photo[0].path
+        ? req.files.profile_photo[0].filename
             .replace(/\\/g, "/")
             .replace("public/", "")
         : undefined;

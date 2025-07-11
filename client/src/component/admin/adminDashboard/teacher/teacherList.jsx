@@ -16,65 +16,29 @@ import {
 } from "react-icons/fi";
 
 const TeacherList = () => {
-  // State for teachers data
+  // State for teachers data\
+  const base_url = import.meta.env.VITE_API_KEY_Base_URL;
+
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  // Dummy data - replace with actual API call
-  const dummyTeachers = [
-    {
-      id: 1,
-      full_name: "Sarah Khan",
-      email: "sarah@example.com",
-      phone: "+8801912345678",
-      specialization: "IELTS",
-      qualifications: "MA in English, TESOL Certified",
-      status: "Approved",
-      avatar: "SK",
-      hourly_rate: 35,
-    },
-    {
-      id: 2,
-      full_name: "Alex Johnson",
-      email: "alex@example.com",
-      phone: "+8801912345679",
-      specialization: "GRE",
-      qualifications: "PhD in Mathematics",
-      status: "Pending",
-      avatar: "AJ",
-      hourly_rate: 45,
-    },
-    {
-      id: 3,
-      full_name: "Maria Garcia",
-      email: "maria@example.com",
-      phone: "+8801912345680",
-      specialization: "SAT",
-      qualifications: "BS in Education, 5 years experience",
-      status: "Approved",
-      avatar: "MG",
-      hourly_rate: 40,
-    },
-  ];
 
   // Mock API fetch function
   const fetchTeachers = async () => {
     try {
       setLoading(true);
       // Actual API call would look like this:
-      /*
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:3500/api/teachers", {
+      const res = await axios.get("http://localhost:3500/api/admin/teachers", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setTeachers(res.data.teachers || []);
-      */
-
+      console.log(res.data.data)
+      setTeachers(res.data.data || []);
       // Using dummy data for now
-      setTeachers(dummyTeachers);
     } catch (error) {
+      console.log(error)
       toast.error("Failed to fetch teachers", {
         style: {
           background: "#fff",
@@ -256,7 +220,7 @@ const TeacherList = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 rounded-full bg-black text-white flex items-center justify-center font-bold">
-                            {teacher.avatar}
+                                       <img src={`${base_url}/uploads/teachers/${teacher?.profile_photo}`} alt="" />
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
