@@ -484,16 +484,12 @@ const CourseCreator = () => {
       const loadingToast = toast.loading("Publishing course...");
 
       // Make API call
-      const response = await axios.post(
-        `${base_url}/api/admin/courses`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await axios.post(`${base_url}/api/courses`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       // Success handling
       toast.dismiss(loadingToast);

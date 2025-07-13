@@ -10,6 +10,7 @@ import {
   FiFileText,
   FiDownload,
   FiClock,
+  FiChevronDown,
 } from "react-icons/fi";
 
 const Notifications = ({ setNotificationCount }) => {
@@ -18,7 +19,7 @@ const Notifications = ({ setNotificationCount }) => {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   // Format date without date-fns
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "short", day: "numeric" };
@@ -104,11 +105,15 @@ const Notifications = ({ setNotificationCount }) => {
     setSelectedTeacher(teacher);
     setIsModalOpen(true);
   };
-
+  const toggleDropdown = () => {
+    setIsDropdownOpen((prev) => !prev);
+  };
   const downloadFile = (url) => {
     window.open(`http://localhost:3500/${url}`, "_blank");
   };
-
+  const downloadCertificate = (certificateUrl) => {
+    window.open(`http://localhost:3500/${certificateUrl}`, "_blank");
+  };
   return (
     <div className="p-6">
       <div className="p-2  mx-auto">
@@ -137,13 +142,13 @@ const Notifications = ({ setNotificationCount }) => {
                     <div className="flex items-start space-x-4 flex-1">
                       {teacher.profilePhoto ? (
                         <img
-                          src={`http://localhost:3500/${teacher.profilePhoto}`}
+                          src={`http://localhost:3500/uploads/teachers/${teacher.profilePhoto}`}
                           alt="Profile"
-                          className="w-12 h-12 rounded-full object-cover"
+                          className="w-16 h-16 object-cover rounded-full border-4 border-white shadow-lg transition-all duration-300 hover:scale-110"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                          <FiUser className="text-gray-500 text-xl" />
+                        <div className="w-16 h-16 rounded-full bg-gray-500 flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110">
+                          <FiUser className="text-white text-2xl" />
                         </div>
                       )}
 
@@ -177,20 +182,44 @@ const Notifications = ({ setNotificationCount }) => {
                         <div className="mt-2 flex space-x-2">
                           <button
                             onClick={() => downloadFile(teacher.cv)}
-                            className="text-xs flex items-center text-blue-600 hover:text-blue-800"
+                            className="text-xs flex items-center text-black bg-white p-2 rounded-full transition-all duration-300 transform group hover:bg-gray-100"
                           >
-                            <FiDownload className="mr-1" /> View CV
+                            <FiFileText className="mr-1 text-black text-lg transition-colors duration-300" />
+                            View CV
+                            <FiDownload className="ml-2 mr-1 text-black transition-all duration-300 transform group-hover:scale-110" />
                           </button>
+
                           {teacher.certificates?.length > 0 && (
-                            <button
-                              onClick={() =>
-                                downloadFile(teacher.certificates[0])
-                              }
-                              className="text-xs flex items-center text-blue-600 hover:text-blue-800"
-                            >
-                              <FiFileText className="mr-1" /> View Certificates
-                              ({teacher.certificates.length})
-                            </button>
+                            <div className="relative">
+                              <button
+                                onClick={toggleDropdown}
+                                className="text-xs flex items-center text-black bg-white p-2 rounded-full transition-all duration-300 transform group hover:bg-gray-100"
+                              >
+                                <FiFileText className="mr-1 text-black text-lg transition-colors duration-300" />
+                                View Certificates
+                                <span className="ml-1 text-sm transition-all duration-300">
+                                  ({teacher.certificates.length})
+                                </span>
+                                <FiChevronDown className="mr-1 text-black transition-all duration-300 transform group-hover:rotate-180 group-hover:scale-110" />
+                              </button>
+
+                              {isDropdownOpen &&
+                                teacher.certificates.length > 0 && (
+                                  <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-md border border-gray-200 z-10">
+                                    {teacher.certificates.map((cert, index) => (
+                                      <button
+                                        key={index}
+                                        onClick={() =>
+                                          downloadCertificate(cert)
+                                        }
+                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
+                                      >
+                                        Certificate {index + 1}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                            </div>
                           )}
                         </div>
                       </div>

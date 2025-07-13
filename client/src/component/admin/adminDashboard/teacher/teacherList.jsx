@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import axios from "axios";
@@ -24,7 +23,6 @@ const TeacherList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-
   // Mock API fetch function
   const fetchTeachers = async () => {
     try {
@@ -34,11 +32,11 @@ const TeacherList = () => {
       const res = await axios.get("http://localhost:3500/api/admin/teachers", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(res.data.data)
+      console.log(res.data.data);
       setTeachers(res.data.data || []);
       // Using dummy data for now
     } catch (error) {
-      console.log(error)
+      console.log(error);
       toast.error("Failed to fetch teachers", {
         style: {
           background: "#fff",
@@ -219,9 +217,20 @@ const TeacherList = () => {
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-black text-white flex items-center justify-center font-bold">
-                                       <img src={`${base_url}/uploads/teachers/${teacher?.profile_photo}`} alt="" />
+                          <div className="flex-shrink-0 h-16 w-16 rounded-full bg-gray-600 text-white flex items-center justify-center font-bold shadow-xl transition-all duration-300 hover:scale-110">
+                            {teacher?.profile_photo ? (
+                              <img
+                                src={`${base_url}/uploads/teachers/${teacher?.profile_photo}`}
+                                alt="Profile"
+                                className="w-full h-full object-cover rounded-full border-4 border-white"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center rounded-full bg-gray-200 text-3xl">
+                                <FiUser className="text-white" />
+                              </div>
+                            )}
                           </div>
+
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
                               {teacher.full_name}

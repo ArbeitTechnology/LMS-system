@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { FiEdit2, FiTrash2, FiUser, FiSearch, FiFilter } from "react-icons/fi";
 import { motion } from "framer-motion";
 import axios from "axios";
-
+import { toast } from "react-hot-toast";
 const CourseList = () => {
   const base_url = import.meta.env.VITE_API_KEY_Base_URL;
   const [courses, setCourses] = useState([]);
@@ -26,8 +27,8 @@ const CourseList = () => {
       setCourses(response.data.data);
       setError(null);
     } catch (err) {
-      console.error('Error fetching courses:', err);
-      setError('Failed to load courses. Please try again later.');
+      console.error("Error fetching courses:", err);
+      setError("Failed to load courses. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -40,10 +41,10 @@ const CourseList = () => {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      }); // Adjust this endpoint as needed
+      });
       setTeachers(response.data.data);
     } catch (err) {
-      console.error('Error fetching teachers:', err);
+      console.error("Error fetching teachers:", err);
     }
   };
 
@@ -65,15 +66,29 @@ const CourseList = () => {
   // Handle assigning teacher to course
   const assignTeacher = async (courseId, teacherId) => {
     try {
-      await axios.patch(`${base_url}/api/admin/courses/${courseId}`, { instructor: teacherId }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      fetchCourses(); // Refresh the course list
+      // Ensure courseId is valid
+      if (!courseId) {
+        toast.error("Course ID is missing.");
+        return;
+      }
+
+      const response = await axios.patch(
+        `${base_url}/api/admin/courses/${courseId}`,
+        { instructor: teacherId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Teacher Assigned!");
+        fetchCourses();
+      }
     } catch (err) {
-      console.error('Error assigning teacher:', err);
-      setError('Failed to assign teacher. Please try again.');
+      console.error("Error assigning teacher:", err);
+      setError("Failed to assign teacher. Please try again.");
     }
   };
 
@@ -87,8 +102,8 @@ const CourseList = () => {
       });
       fetchCourses(); // Refresh the course list after deletion
     } catch (err) {
-      console.error('Error deleting course:', err);
-      setError('Failed to delete course. Please try again.');
+      console.error("Error deleting course:", err);
+      setError("Failed to delete course. Please try again.");
     }
   };
 
@@ -100,17 +115,21 @@ const CourseList = () => {
   // Handle saving edited course
   const saveEdit = async () => {
     try {
-      await axios.put(`${base_url}/api/admin/courses/${editingCourse._id}`, editingCourse, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      await axios.put(
+        `${base_url}/api/admin/courses/${editingCourse._id}`,
+        editingCourse,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       fetchCourses(); // Refresh the course list
       setEditingCourse(null);
     } catch (err) {
-      console.error('Error updating course:', err);
-      setError('Failed to update course. Please try again.');
+      console.error("Error updating course:", err);
+      setError("Failed to update course. Please try again.");
     }
   };
 
@@ -130,7 +149,7 @@ const CourseList = () => {
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
           <p className="text-red-500 text-lg">{error}</p>
-          <button 
+          <button
             onClick={fetchCourses}
             className="mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
           >
@@ -250,8 +269,8 @@ const CourseList = () => {
                           >
                             <option value="">Select Teacher</option>
                             {teachers.map((teacher) => (
-                              <option key={teacher._id} value={teacher._id}>
-                                {teacher.name}
+                              <option key={teacher.id} value={teacher.id}>
+                                {teacher.full_name}
                               </option>
                             ))}
                           </select>
@@ -321,7 +340,7 @@ const CourseList = () => {
                     Description
                   </label>
                   <textarea
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg  focus:border-gray-500"
                     rows="3"
                     value={editingCourse.description}
                     onChange={(e) =>
@@ -338,13 +357,14 @@ const CourseList = () => {
                     Type
                   </label>
                   <select
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-gray-500"
                     value={editingCourse.type}
                     onChange={(e) =>
                       setEditingCourse({
                         ...editingCourse,
                         type: e.target.value,
-                        price: e.target.value === "free" ? 0 : editingCourse.price
+                        price:
+                          e.target.value === "free" ? 0 : editingCourse.price,
                       })
                     }
                   >
