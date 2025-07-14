@@ -5,6 +5,7 @@ const cors = require("cors");
 const authRoutes = require("./routes/auth");
 const Adminrouter = require("./routes/Adminrouter");
 const Studnetauth = require("./routes/Studentauth");
+const Teaceherrouter = require("./routes/Teacherrouter");
 
 const app = express();
 const PORT = process.env.PORT || 3500;
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/auth/student", Studnetauth);
 app.use("/api/admin", Adminrouter);
+app.use("/api/teacher", Teaceherrouter);
 app.use(express.static("public"))
 // DB Connection
 connectDB();

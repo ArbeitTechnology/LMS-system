@@ -656,9 +656,8 @@ Adminrouter.put(
 
       res.json({
         success: true,
-        message: `Student status changed to ${
-          is_active ? "active" : "inactive"
-        }`,
+        message: `Student status changed to ${is_active ? "active" : "inactive"
+          }`,
         data: updatedStudent,
       });
     } catch (error) {
