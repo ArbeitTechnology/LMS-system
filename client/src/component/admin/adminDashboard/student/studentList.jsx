@@ -44,6 +44,7 @@ const StudentList = () => {
     };
 
     fetchStudents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Filter students based on search term
@@ -51,7 +52,8 @@ const StudentList = () => {
     (student) =>
       student.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (student.phone && student.phone.toLowerCase().includes(searchTerm.toLowerCase()))
+      (student.phone &&
+        student.phone.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // Pagination logic
@@ -76,7 +78,7 @@ const StudentList = () => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-      
+
       // Update the local state to remove the deleted student
       setStudents(students.filter((student) => student._id !== id));
       toast.success("Student deleted successfully");
@@ -196,9 +198,12 @@ const StudentList = () => {
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                            {/* <FiUser className="h-5 w-5 text-gray-500" /> */}
-                            <img src={`${base_url}/students/${student?.profile_photo}`} alt="" />
+                          <div className="flex-shrink-0 h-16 w-16 rounded-full bg-gray-600 text-white flex items-center justify-center font-bold shadow-md transition-all duration-300 hover:scale-110">
+                            <img
+                              src={`${base_url}/students/${student?.profile_photo}`}
+                              alt=""
+                              className="w-full h-full object-cover rounded-full border-4 border-white"
+                            />
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
