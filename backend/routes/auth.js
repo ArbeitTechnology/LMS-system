@@ -8,6 +8,8 @@ const {
   forgotPassword,
   resetPassword,
   getAdmin,
+  updateAdmin,
+  updatePassword,
   verifyOtp,
   adminGet,
   createSubAdmin,
@@ -98,6 +100,8 @@ const handleUploadErrors = (err, req, res, next) => {
 // Admin routes
 router.get("/checkAdmin", getAdmin);
 router.get("/admin", authenticateToken, adminGet);
+router.put("/update-profile", authenticateToken, updateAdmin);
+router.put("/change-password", authenticateToken, updatePassword);
 router.post("/subadmin", authenticateToken, authorizeAdmin, createSubAdmin);
 router.delete(
   "/subadmin/:id",

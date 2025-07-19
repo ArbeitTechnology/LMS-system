@@ -54,11 +54,16 @@ const teacherSchema = new mongoose.Schema(
     specialization: {
       type: String,
       required: [true, "Specialization is required"],
-      enum: {
-        values: ["IELTS", "GRE", "SAT", "TOEFL", "GMAT", "Other"],
+      validate: {
+        validator: function (value) {
+          const allowed = ["IELTS", "GRE", "SAT", "TOEFL", "GMAT", "Other"];
+          // Allow predefined or custom if "Other" is selected
+          return allowed.includes(value) || value.trim().length > 0;
+        },
         message: "Invalid specialization",
       },
     },
+
     qualifications: {
       type: String,
       required: [true, "Qualifications are required"],

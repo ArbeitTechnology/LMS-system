@@ -18,7 +18,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useAdmin } from "../../../context/AdminContext";
+import { useAdmin } from "../../../context/useAdmin";
 
 const Sidebar = ({
   activeView,
@@ -41,61 +41,6 @@ const Sidebar = ({
       fetchAdminProfile(admin_info._id, token);
     }
   }, []);
-  // useEffect(() => {
-  //   const fetchAdminData = async () => {
-  //     try {
-  //       const token = localStorage.getItem("token");
-  //       if (!token) throw new Error("No token found");
-
-  //       const response = await axios.get(
-  //         "http://localhost:3500/api/auth/admin",
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         }
-  //       );
-
-  //       const gradients = [
-  //         "bg-gradient-to-r from-purple-500 to-pink-500",
-  //         "bg-gradient-to-r from-blue-500 to-teal-400",
-  //         "bg-gradient-to-r from-amber-500 to-pink-500",
-  //         "bg-gradient-to-r from-emerald-500 to-blue-500",
-  //         "bg-gradient-to-r from-violet-500 to-fuchsia-500",
-  //       ];
-  //       const randomGradient =
-  //         gradients[Math.floor(Math.random() * gradients.length)];
-
-  //       setAdminData({
-  //         name: response.data.username || "Admin User",
-  //         email: response.data.email || "admin@example.com",
-  //         avatarColor: randomGradient,
-  //       });
-
-  //       // Fetch notifications
-  //       const notificationResponse = await axios.get(
-  //         "http://localhost:3500/api/auth/notifications",
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         }
-  //       );
-
-  //       // Set the notification count based on the length of notifications
-  //       setNotificationCount(notificationResponse.data.notifications.length);
-  //     } catch (err) {
-  //       console.error("Failed to fetch admin data:", err);
-  //       toast.error("Failed to load admin data");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchAdminData();
-  // }, []);
-
-  // const adminInitial = adminData.username?.charAt(0).toUpperCase();
 
   const baseNavItems = [
     { name: "dashboard", icon: <FiHome />, component: "dashboard" },

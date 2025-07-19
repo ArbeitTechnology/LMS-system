@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+// src/components/Sidebar.js
 import React, { useState, useEffect } from "react";
 import {
   FiHome,
@@ -9,106 +9,71 @@ import {
   FiChevronDown,
   FiChevronUp,
   FiLogOut,
-  FiLayers,
+  FiBook,
+  FiFileText,
+  FiEdit,
+  FiList
 } from "react-icons/fi";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
-const Sidebar = ({ activeView, setActiveView }) => {
-  const [isOpen, setIsOpen] = useState(true);
+const Sidebar = ({ isOpen, toggleSidebar }) => {
   const [teacherData, setTeacherData] = useState({
     name: "Loading...",
     email: "loading...@example.com",
-    avatarColor: "bg-gradient-to-r from-purple-500 to-pink-500",
+    avatarColor: "bg-gradient-to-r from-blue-600 to-blue-400",
   });
   const [loading, setLoading] = useState(true);
   const [expandedMenus, setExpandedMenus] = useState({});
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  useEffect(() => {
-    const fetchTeacherData = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("No token found");
 
-        const response = await axios.get(
-          // "http://localhost:3500/api/auth/teacher",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const gradients = [
-          "bg-gradient-to-r from-purple-500 to-pink-500",
-          "bg-gradient-to-r from-blue-500 to-teal-400",
-          "bg-gradient-to-r from-amber-500 to-pink-500",
-          "bg-gradient-to-r from-emerald-500 to-blue-500",
-          "bg-gradient-to-r from-violet-500 to-fuchsia-500",
-        ];
-        const randomGradient =
-          gradients[Math.floor(Math.random() * gradients.length)];
-
-        setTeacherData({
-          name: response.data.username || "teacher",
-          email: response.data.email || "teacher@example.com",
-          avatarColor: randomGradient,
-        });
-
-        // Fetch notifications
-        const notificationResponse = await axios.get(
-          // "http://localhost:3500/api/auth/notifications",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-      } catch (err) {
-        console.error("Failed to fetch teacher data:", err);
-        toast.error("Failed to load teacher data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTeacherData();
-  }, []);
-
-  const teacherInitial = teacherData.name.charAt(0).toUpperCase();
 
   const baseNavItems = [
-    { name: "dashboard", icon: <FiHome />, component: "dashboard" },
+    { 
+      name: "Dashboard", 
+      icon: <FiHome size={18} />, 
+      path: "/teacher/dashboard" 
+    },
     {
       name: "Courses",
-      icon: <FiLayers />,
+      icon: <FiBook size={18} />,
       children: [
-        { name: "Create Courses", component: "createCourse" },
-        { name: "Course List", component: "courseList" },
+        { name: "Create Course", icon: <FiEdit size={16} />, path: "/teacher/courses/create" },
+        { name: "Course List", icon: <FiList size={16} />, path: "/teacher/course-list" },
+      ],
+    },
+    {
+      name: "Assessments",
+      icon: <FiFileText size={18} />,
+      children: [
+        { name: "Create MCQ", icon: <FiEdit size={16} />, path: "/teacher/create-mcq" },
+        { name: "MCQ List", icon: <FiList size={16} />, path: "/teacher/mcq-list" },
+        { name: "Create Question", icon: <FiEdit size={16} />, path: "/teacher/create-question" },
+        { name: "Question List", icon: <FiList size={16} />, path: "/teacher/question-list" },
       ],
     },
     {
       name: "notifications",
       icon: (
         <div className="relative">
-          <FiBell />
-
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs text-white"
-          >
+          <FiBell size={18} />
+          <span className="animate-ping absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500 opacity-75"></span>
+          <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 flex items-center justify-center text-[10px] text-white">
             0
-          </motion.span>
+          </span>
         </div>
       ),
-      component: "notifications",
+      path: "/teacher/notifications",
     },
-    { name: "settings", icon: <FiSettings />, component: "settings" },
+    { 
+      name: "settings", 
+      icon: <FiSettings size={18} />, 
+      path: "/teacher/settings" 
+    },
   ];
 
   const toggleMenu = (menuName) => {
@@ -118,59 +83,37 @@ const Sidebar = ({ activeView, setActiveView }) => {
     }));
   };
 
-  const handleToggleSidebar = () => {
-    if (isOpen) {
-      setExpandedMenus({});
-    }
-    setIsOpen(!isOpen);
-  };
-
   const handleLogout = () => {
     setShowLogoutConfirm(true);
   };
 
   const confirmLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("teacher");
-    toast.success("Logout successful!");
+    localStorage.removeItem("teacherData");
+    toast.success("Logged out successfully");
     setTimeout(() => {
-      navigate("/", { replace: true });
+      navigate("/teacher", { replace: true });
     }, 800);
   };
 
+  // Auto-close menus when sidebar collapses
+  useEffect(() => {
+    if (!isOpen) {
+      setExpandedMenus({});
+    }
+  }, [isOpen]);
+
   return (
-    <motion.aside
-      initial={{ width: isOpen ? 256 : 80 }}
-      animate={{ width: isOpen ? 256 : 80 }}
-      transition={{ type: "spring", damping: 20 }}
-      className={`bg-gradient-to-b from-gray-50 to-gray-100 h-full flex flex-col border-r border-gray-200 shadow-xl overflow-hidden`}
-    >
+    <aside className={`
+      bg-white h-full flex flex-col border-r border-gray-200 shadow-sm overflow-hidden
+      transition-all duration-300 ease-in-out ${isOpen ? "w-72" : "w-0"}
+    `}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 h-16">
-        {isOpen ? (
-          <motion.h1
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-xl font-bold text-black"
-          >
+          <h1 className="text-xl font-semibold text-gray-800 animate-fade-in">
             Teacher Portal
-          </motion.h1>
-        ) : (
-          <div
-            className={`w-8 h-8 rounded-full ${teacherData.avatarColor} text-white flex items-center justify-center font-bold shadow-md`}
-          >
-            {teacherInitial}
-          </div>
-        )}
-
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={handleToggleSidebar}
-          className="p-0.7 rounded-lg hover:bg-gray-200 text-gray-600 transition-colors"
-        >
-          {isOpen ? <FiChevronLeft /> : <FiChevronRight />}
-        </motion.button>
+          </h1>
+       
       </div>
 
       {/* Navigation */}
@@ -180,178 +123,129 @@ const Sidebar = ({ activeView, setActiveView }) => {
             <li key={item.name}>
               {item.children ? (
                 <>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                  <button
                     onClick={() => toggleMenu(item.name)}
-                    className={`flex items-center justify-between w-full p-4 rounded-xl ${
-                      expandedMenus[item.name]
-                        ? "bg-gray-200 text-gray-900"
-                        : "text-gray-700 hover:bg-gray-200"
-                    } transition-colors`}
+                    className={`
+                      flex items-center justify-between w-full px-3 cursor-pointer py-2.5 mb-2 rounded-md
+                      transition-all duration-200 ease-in-out hover:scale-[1.01] active:scale-[0.99]
+                      ${expandedMenus[item.name]
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-600 hover:bg-gray-50"
+                      }
+                    `}
                   >
                     <div className="flex items-center">
-                      <span className="w-5 h-5 flex items-center justify-center">
+                      <span className={`
+                        w-6 h-6 flex items-center justify-center
+                        ${expandedMenus[item.name] ? "text-white" : "text-gray-500"}
+                      `}>
                         {item.icon}
                       </span>
                       {isOpen && (
-                        <span className="ml-3 capitalize font-medium">
+                        <span className="ml-3 font-medium text-sm">
                           {item.name}
                         </span>
                       )}
                     </div>
                     {isOpen &&
                       (expandedMenus[item.name] ? (
-                        <FiChevronUp />
+                        <FiChevronUp className="text-white" />
                       ) : (
-                        <FiChevronDown />
+                        <FiChevronDown className="text-gray-500" />
                       ))}
-                  </motion.button>
+                  </button>
 
-                  <AnimatePresence>
-                    {expandedMenus[item.name] && isOpen && (
-                      <motion.ul
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        {item.children.map((child) => (
-                          <motion.li key={child.name} whileHover={{ x: 5 }}>
-                            <button
-                              onClick={() => setActiveView(child.component)}
-                              className={`text-sm py-2.5 px-8 w-full text-left rounded-md transition-colors ${
-                                activeView === child.component
-                                  ? "bg-gray-800 text-white font-medium shadow-sm"
-                                  : "text-gray-600 hover:bg-gray-100"
-                              }`}
-                            >
-                              {child.name}
-                            </button>
-                          </motion.li>
-                        ))}
-                      </motion.ul>
-                    )}
-                  </AnimatePresence>
+                  {expandedMenus[item.name] && isOpen && (
+                    <ul className="overflow-hidden transition-all duration-200 ease-in-out pl-9">
+                      {item.children.map((child) => (
+                        <li key={child.name}>
+                          <button
+                            onClick={() => navigate(child.path)}
+                            className={`
+                              flex items-center cursor-pointer text-xs md:text-sm py-2.5 px-3 w-full text-left 
+                              rounded-md transition-all duration-150 ease-in-out font-[600] text-gray-700 hover:text-blue-600 hover:translate-x-1
+                              ${location.pathname === child.path
+                                ? "text-blue-500"
+                                : ""
+                              }
+                            `}
+                          >
+                            <span className="mr-2">{child.icon}</span>
+                            {child.name}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </>
               ) : (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setActiveView(item.component)}
-                  className={`flex items-center w-full p-4 rounded-xl transition-all ${
-                    activeView === item.component
-                      ? "bg-gray-900 text-white shadow-md"
-                      : "text-gray-700 hover:bg-gray-200"
-                  }`}
+                <button
+                  onClick={() => navigate(item.path)}
+                  className={`
+                    flex items-center w-full px-3 py-2.5 mb-2 rounded-md
+                    transition-all duration-200 ease-in-out cursor-pointer hover:scale-[1.01] active:scale-[0.99]
+                    ${location.pathname === item.path
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-600 hover:bg-gray-50"
+                    }
+                  `}
                 >
-                  <span className="w-5 h-5 flex items-center justify-center">
+                  <span className={`
+                    w-6 h-6 flex items-center justify-center
+                    ${location.pathname === item.path ? "text-white" : "text-gray-500"}
+                  `}>
                     {item.icon}
                   </span>
                   {isOpen && (
-                    <span className="ml-3 capitalize font-medium">
+                    <span className="ml-3 font-medium text-sm">
                       {item.name}
                     </span>
                   )}
-                </motion.button>
+                </button>
               )}
             </li>
           ))}
         </ul>
       </nav>
 
-      {/* Footer Profile */}
-      <div className="p-4 border-t border-gray-200">
-        <motion.div
-          className="flex items-center"
-          whileHover={isOpen ? { scale: 1.01 } : {}}
-        >
-          <div
-            className={`w-10 h-10 rounded-full ${teacherData.avatarColor} text-white flex items-center justify-center font-bold shadow-md`}
-          >
-            {teacherInitial}
-          </div>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="ml-3"
-            >
-              <p className="text-sm font-medium text-gray-900 truncate max-w-[160px]">
-                {loading ? "Loading..." : teacherData.name}
-              </p>
-              <p className="text-xs text-gray-500 truncate max-w-[160px]">
-                {teacherData.email}
-              </p>
-              <motion.button
-                whileHover={{ x: 2 }}
-                onClick={handleLogout}
-                className="flex items-center text-xs text-red-500 hover:text-red-700 mt-1 transition-colors"
-              >
-                <FiLogOut className="mr-1" /> Logout
-              </motion.button>
-            </motion.div>
-          )}
-        </motion.div>
-      </div>
+ 
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4"
-        >
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -20, opacity: 0 }}
-            transition={{ type: "spring", damping: 25 }}
-            className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden w-full max-w-md border border-gray-200 dark:border-gray-700"
-          >
-            <div className="p-8 text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
-                <FiLogOut className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-xl shadow-xl overflow-hidden w-full max-w-sm border border-gray-200 animate-modal-pop">
+            <div className="p-6 text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
+                <FiLogOut className="h-5 w-5 text-gray-700" />
               </div>
 
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Ready to leave?
+              <h3 className="text-lg font-medium text-gray-800 mb-2">
+                Confirm Sign Out
               </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              <p className="text-sm text-gray-500 mb-6">
                 Are you sure you want to sign out of your account?
               </p>
 
               <div className="flex justify-center space-x-3">
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
                   onClick={() => setShowLogoutConfirm(false)}
-                  className="px-5 py-2.5 text-sm font-medium rounded-lg bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 transition-all shadow-sm"
+                  className="px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 transition-all duration-150 hover:scale-105 active:scale-95"
                 >
                   Cancel
-                </motion.button>
+                </button>
 
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
                   onClick={confirmLogout}
-                  className="px-5 py-2.5 text-sm font-medium rounded-lg bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 transition-all shadow-sm"
+                  className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-all duration-150 hover:scale-105 active:scale-95"
                 >
-                  Logout
-                </motion.button>
+                  Sign Out
+                </button>
               </div>
             </div>
-
-            <div className="bg-gray-50 dark:bg-gray-800 px-4 py-3 text-xs text-gray-500 dark:text-gray-400 text-center border-t border-gray-200 dark:border-gray-700">
-              Session will be securely terminated
-            </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
-    </motion.aside>
+    </aside>
   );
 };
 

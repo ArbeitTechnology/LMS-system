@@ -1275,6 +1275,40 @@ Adminrouter.put(
     }
   }
 );
+// Reassign course to a new teacher (admin only)
+Adminrouter.put('/reassign-teacher/:courseId',authenticateToken,authorizeAdmin,async (req, res) => {
+    try {
+      const { courseId,newInstructorId,changedBy } = req.params;
 
+      if (!newInstructorId) {
+        return res.json({success:false, message: 'New instructor ID is required' });
+      }
+      const course = await Course.findById(courseId);
+      if (!course) {
+        return res.json({success:false, message: 'Course not found' });
+      }
+
+      if (course.instructor) {
+        course.previousInstructors.push({
+          instructor: course.instructor,
+          changedAt: new Date(),
+          changedBy: changedBy
+        });
+      }
+
+      // Update the instructor
+      course.instructor = newInstructorId;
+      await course.save();
+
+      res.json({
+        success:true,
+        message: 'Course instructor updated successfully',
+      });
+    } catch (error) {
+      console.error('Error reassigning teacher:', error);
+      res.status(500).json({ message: 'Server error while reassigning teacher' });
+    }
+  }
+);
 // ------------------------------------courses-routes-------------------------------------------------
 module.exports = Adminrouter;

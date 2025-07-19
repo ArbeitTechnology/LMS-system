@@ -27,16 +27,13 @@ const TeacherList = () => {
   const fetchTeachers = async () => {
     try {
       setLoading(true);
-      // Actual API call would look like this:
       const token = localStorage.getItem("token");
       const res = await axios.get("http://localhost:3500/api/admin/teachers", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(res.data.data);
       setTeachers(res.data.data || []);
-      // Using dummy data for now
+      setLoading(false); // Stop loading on success
     } catch (error) {
-      console.log(error);
       toast.error("Failed to fetch teachers", {
         style: {
           background: "#fff",
@@ -45,24 +42,20 @@ const TeacherList = () => {
           boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
         },
       });
-    } finally {
-      setLoading(false);
+      setLoading(false); // Stop loading on failure
     }
   };
 
   // Mock delete function
   const deleteTeacher = async (id) => {
     try {
-      // Actual API call would look like this:
-      /*
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:3500/api/teachers/${id}`, {
+      await axios.delete(`http://localhost:3500/api/admin/teachers/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      */
 
-      // Simulate API call with dummy data
       setTeachers((prev) => prev.filter((teacher) => teacher.id !== id));
+
       toast.success("Teacher deleted successfully", {
         style: {
           background: "#fff",
@@ -71,6 +64,9 @@ const TeacherList = () => {
           boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
         },
       });
+
+      // Close the modal after success
+      setConfirmDelete(null);
     } catch (error) {
       toast.error("Delete failed", {
         style: {
@@ -80,7 +76,6 @@ const TeacherList = () => {
           boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
         },
       });
-    } finally {
       setConfirmDelete(null);
     }
   };

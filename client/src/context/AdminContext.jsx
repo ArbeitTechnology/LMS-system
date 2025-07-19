@@ -1,45 +1,40 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React from "react";
-import { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import axios from "axios";
 
-const AdminContext = createContext();
+const AdminContext = createContext(); // <-- Export here
 
 export const AdminProvider = ({ children }) => {
   const base_url = import.meta.env.VITE_API_KEY_Base_URL;
   const [adminData, setAdminData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const token = localStorage.getItem("token"); // or from your auth context
-  const admin_info = JSON.parse(localStorage.getItem("admin")); // or from your auth context
+  const token = localStorage.getItem("token");
+  const admin_info = JSON.parse(localStorage.getItem("admin"));
 
-  const fetchAdminProfile = async () => {
+  const fetchAdminProfile = async (id = admin_info?._id, authToken = token) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${base_url}/api/admin/admin-profile/${admin_info._id}`,
+        `${base_url}/api/admin/admin-profile/${id}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${authToken}`,
           },
         }
       );
-
-      if (response.data) {
-        setAdminData(response.data.admin);
-      } else {
-        setError(response.data.message || "Admin not found");
-      }
+      setAdminData(response.data.admin);
     } catch (err) {
       setError(err.response?.data?.message || "Server error");
-      console.error("Error fetching admin profile:", err);
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchAdminProfile();
   }, []);
+
   const clearAdminData = () => {
     setAdminData(null);
     setError(null);
@@ -61,10 +56,4 @@ export const AdminProvider = ({ children }) => {
   );
 };
 
-export const useAdmin = () => {
-  const context = useContext(AdminContext);
-  if (!context) {
-    throw new Error("useAdmin must be used within an AdminProvider");
-  }
-  return context;
-};
+export default AdminContext;

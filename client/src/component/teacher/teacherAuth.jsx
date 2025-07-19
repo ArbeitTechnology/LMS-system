@@ -14,14 +14,11 @@ import {
 } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
-
-// import axios from "axios";
+import axios from "axios";
 
 const TeacherAuth = ({ authMode, setAuthMode }) => {
-  // Auth mode state
-
   const navigate = useNavigate();
-
+  const base_url = import.meta.env.VITE_API_KEY_Base_URL;
   // Registration form state
   const [form, setForm] = useState({
     email: "",
@@ -179,8 +176,27 @@ const TeacherAuth = ({ authMode, setAuthMode }) => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const formData = new FormData();
+      
+      // Append all form fields
+      Object.entries(form).forEach(([key, value]) => {
+        if (value) formData.append(key, value);
+      });
+      
+      // Append files
+      formData.append("cv", files.cv);
+      files.certificates.forEach((cert, index) => {
+        formData.append("certificates[]", cert);
+      });
+      if (files.profile_photo) {
+        formData.append("profile_photo", files.profile_photo);
+      }
+
+      const response = await axios.post(`${base_url}/api/auth/teacher-register`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
 
       toast.success("Registration submitted for approval", {
         style: {
@@ -266,9 +282,15 @@ const TeacherAuth = ({ authMode, setAuthMode }) => {
     setIsLoginSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await axios.post(`${base_url}/api/auth/teacher-login`, {
+        email: loginForm.email,
+        password: loginForm.password
+      });
 
+      // Store the token (you might want to use cookies or more secure storage)
+      localStorage.setItem("teacherToken", response.data.token);
+      localStorage.setItem("teacherData",JSON.stringify(response.data.data));
+      
       toast.success("Login successful", {
         style: {
           background: "#fff",
@@ -281,7 +303,18 @@ const TeacherAuth = ({ authMode, setAuthMode }) => {
       // Navigate to dashboard
       navigate("/teacher/dashboard");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed", {
+      let errorMessage = "Login failed";
+      if (err.response) {
+        if (err.response.status === 401) {
+          errorMessage = "Invalid email or password";
+        } else if (err.response.status === 403) {
+          errorMessage = err.response.data.message || "Account not approved yet";
+        } else {
+          errorMessage = err.response.data.message || errorMessage;
+        }
+      }
+      
+      toast.error(errorMessage, {
         style: {
           background: "#fff",
           color: "#000",
@@ -293,11 +326,13 @@ const TeacherAuth = ({ authMode, setAuthMode }) => {
       setIsLoginSubmitting(false);
     }
   };
+
   const handleForgotPassword = () => {
     navigate("/teacher/forgotPassword", {
-      state: { authMode } // Only pass serializable data
+      state: { authMode }
     });
   };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -876,7 +911,7 @@ const TeacherAuth = ({ authMode, setAuthMode }) => {
                     whileHover={{ scale: 1.05 }}
                     type="button"
                     onClick={() => setAuthMode("login")}
-                    className="text-gray-600 hover:text-gray-800 font-medium"
+                    className="text-gray-600 hover:text-gray-800 cursor-pointer font-medium"
                   >
                     Sign In
                   </motion.button>
@@ -1019,7 +1054,7 @@ const TeacherAuth = ({ authMode, setAuthMode }) => {
 
                   <button
                     type="button"
-                    onClick={handleForgotPassword} // Handle navigation on click
+                    onClick={handleForgotPassword}
                     className="text-sm text-gray-600 hover:text-blue-500 transition-colors duration-200"
                   >
                     Forgot password?
@@ -1032,7 +1067,7 @@ const TeacherAuth = ({ authMode, setAuthMode }) => {
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={isLoginSubmitting}
-                  className={`w-full py-3 px-4 rounded-lg font-medium text-white ${
+                  className={`w-full py-3 px-4 rounded-lg cursor-pointer font-medium text-white ${
                     isLoginSubmitting
                       ? "bg-gray-600"
                       : "bg-black hover:bg-gray-800"
@@ -1074,7 +1109,7 @@ const TeacherAuth = ({ authMode, setAuthMode }) => {
                     whileHover={{ scale: 1.05 }}
                     type="button"
                     onClick={() => setAuthMode("register")}
-                    className="text-gray-600 hover:text-gray-800 font-medium"
+                    className="text-gray-600 hover:text-gray-800 cursor-pointer font-medium"
                   >
                     Register here
                   </motion.button>

@@ -14,9 +14,16 @@ import ForgotPasswordStudent from "./component/student/ForgotPassword";
 import ResetPasswordStudent from "./component/student/ResetPassword";
 import StudentDashboard from "./component/student/studentDashboard/studentDashboard";
 import TeacherDashboard from "./component/teacher/teacherDashboard/teacherDashboard";
-
-import CoursePlayer from "./component/student/studentDashboard/courses/courseView/CoursePlayer";
-import CourseOverview from "./component/student/studentDashboard/courses/courseView/CourseOverview";
+import Createmcq from "./component/teacher/teacherDashboard/mcq/Createmcq";
+import Createquestion from "./component/teacher/teacherDashboard/question/Createquestion";
+// import CreateCourse from "./component/teacher/teacherDashboard/courses/CreateCourse";
+// import CourseList from "./component/teacher/teacherDashboard/courses/CourseList";
+import Mcqlist from "./component/teacher/teacherDashboard/mcq/Mcqlist";
+import CQlist from "./component/teacher/teacherDashboard/question/CQlist";
+import CourseList from "./component/teacher/teacherDashboard/course/CourseList";
+import CreateCourse from "./component/teacher/teacherDashboard/course/CreateCourse";
+import Notification from "./component/teacher/teacherDashboard/notification/Notification";
+import TeacherSettings from "./component/teacher/teacherDashboard/settings/TeacherSettings";
 
 const isAuthenticated = () => {
   const token = localStorage.getItem("token");
@@ -74,9 +81,25 @@ const App = () => {
           element={<ResetPasswordStudent />}
         />
         <Route path="/student/dashboard" element={<StudentDashboard />} />
-        {/* demo */}
-        <Route path="/" element={<CourseOverview />} />
-        <Route path="/course/:courseId" element={<CoursePlayer />} />
+
+
+        {/* ------------------------------teacher-all-route---------------------------------------- */}
+        <Route path="/teacher/courses/create" element={<CreateCourse />} />
+        <Route path="/teacher/course-list" element={<CourseList />} />
+        <Route path="/teacher/create-mcq" element={<Createmcq />} />
+        <Route path="/teacher/mcq-list" element={<Mcqlist />} />
+        <Route path="/teacher/create-question" element={<Createquestion />} />
+        <Route path="/teacher/question-list" element={<CQlist />} />
+        <Route path="/teacher/notifications" element={<Notification />} />
+        <Route path="/teacher/settings" element={<TeacherSettings />} />
+
+        {/* <Route path="/teacher/course-list" element={<CourseList />} /> */}
+
+
+
+
+        {/* ------------------------------teacher-all-route---------------------------------------- */}
+
       </Routes>
     </>
   );

@@ -47,7 +47,18 @@ const AdminLogin = () => {
         }
       })
       .catch((error) => {
-        console.log(error);
+        toast.error(error, {
+          style: {
+            background: "#fff",
+            color: "#000",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          },
+          iconTheme: {
+            primary: "#ff0000", // bright red
+            secondary: "#ffffff", // white
+          },
+        });
         setIsRegistered(false); // If there is an error (e.g., no admin in DB), show registration form
       });
   }, []);
@@ -106,14 +117,47 @@ const AdminLogin = () => {
           setTimeout(() => {
             navigate("/admin/dashboard", { replace: true });
           }, 500);
-          toast.success("Login successful!");
+          toast.success("Login successful!", {
+            style: {
+              background: "#fff",
+              color: "#000",
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+            },
+            iconTheme: {
+              primary: "#000",
+              secondary: "#fff",
+            },
+          });
           setEmail("");
           setPassword("");
         } else {
-          toast.error(response.data.message); // Show error toast
+          toast.error(response.data.message, {
+            style: {
+              background: "#fff",
+              color: "#000",
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+            },
+            iconTheme: {
+              primary: "#ff0000", // bright red
+              secondary: "#ffffff", // white
+            },
+          }); // Show error toast
         }
       } catch (error) {
-        toast.error("Failed to login. Please try again!"); // Show error toast
+        toast.error("Failed to login. Please try again!", {
+          style: {
+            background: "#fff",
+            color: "#000",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          },
+          iconTheme: {
+            primary: "#ff0000", // bright red
+            secondary: "#ffffff", // white
+          },
+        }); // Show error toast
       }
       setIsSubmitting(false);
     } else {
@@ -171,16 +215,50 @@ const AdminLogin = () => {
           setIsRegistered(true); // Mark the registration as successful
           setErrors({ email: "", password: "", username: "" });
           toast.success(
-            "The Admin registration is successful! You can now log in."
+            "The Admin registration is successful! You can now log in.",
+            {
+              style: {
+                background: "#fff",
+                color: "#000",
+                border: "1px solid #e5e7eb",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+              },
+              iconTheme: {
+                primary: "#000",
+                secondary: "#fff",
+              },
+            }
           ); // Show success toast
           setUsername("");
           setEmail("");
           setPassword("");
         } else {
-          toast.error(response.data.message); // Show error toast
+          toast.error(response.data.message, {
+            style: {
+              background: "#fff",
+              color: "#000",
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+            },
+            iconTheme: {
+              primary: "#ff0000", // bright red
+              secondary: "#ffffff", // white
+            },
+          }); // Show error toast
         }
       } catch (error) {
-        toast.error("Registration failed. Please try again!"); // Show error toast
+        toast.error("Registration failed. Please try again!", {
+          style: {
+            background: "#fff",
+            color: "#000",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          },
+          iconTheme: {
+            primary: "#ff0000", // bright red
+            secondary: "#ffffff", // white
+          },
+        }); // Show error toast
       }
       setIsSubmitting(false);
     } else {

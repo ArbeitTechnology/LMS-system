@@ -27,7 +27,6 @@ const CourseList = () => {
       setCourses(response.data.data);
       setError(null);
     } catch (err) {
-      console.error("Error fetching courses:", err);
       setError("Failed to load courses. Please try again later.");
     } finally {
       setIsLoading(false);
@@ -44,7 +43,18 @@ const CourseList = () => {
       });
       setTeachers(response.data.data);
     } catch (err) {
-      console.error("Error fetching teachers:", err);
+      toast.error("Error fetching teachers:", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#ff0000", // bright red
+          secondary: "#ffffff", // white
+        },
+      });
     }
   };
 
@@ -83,12 +93,33 @@ const CourseList = () => {
       );
 
       if (response.data.success) {
-        toast.success("Teacher Assigned!");
+        toast.success("Teacher Assigned!", {
+          style: {
+            background: "#fff",
+            color: "#000",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          },
+          iconTheme: {
+            primary: "#000",
+            secondary: "#fff",
+          },
+        });
         fetchCourses();
       }
     } catch (err) {
-      console.error("Error assigning teacher:", err);
-      setError("Failed to assign teacher. Please try again.");
+      toast.error("Failed to assign teacher. Please try again.", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#ff0000", // bright red
+          secondary: "#ffffff", // white
+        },
+      });
     }
   };
 
@@ -102,8 +133,18 @@ const CourseList = () => {
       });
       fetchCourses(); // Refresh the course list after deletion
     } catch (err) {
-      console.error("Error deleting course:", err);
-      setError("Failed to delete course. Please try again.");
+      toast.error("Failed to delete course. Please try again.", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#ff0000", // bright red
+          secondary: "#ffffff", // white
+        },
+      });
     }
   };
 
@@ -129,7 +170,18 @@ const CourseList = () => {
       setEditingCourse(null);
     } catch (err) {
       console.error("Error updating course:", err);
-      setError("Failed to update course. Please try again.");
+      toast.error("Failed to update course. Please try again.", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#ff0000", // bright red
+          secondary: "#ffffff", // white
+        },
+      });
     }
   };
 

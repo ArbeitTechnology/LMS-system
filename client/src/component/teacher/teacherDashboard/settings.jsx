@@ -16,7 +16,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
-const TeacherSettings = () => {
+const settings = () => {
   const [teacherData, setTeacherData] = useState({
     full_name: "",
     email: "",
@@ -1053,4 +1053,4 @@ const TeacherSettings = () => {
   );
 };
 
-export default TeacherSettings;
+export default settings;

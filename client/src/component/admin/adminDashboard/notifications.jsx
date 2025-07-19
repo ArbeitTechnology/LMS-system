@@ -27,8 +27,8 @@ const Notifications = ({ setNotificationCount }) => {
   };
 
   const fetchNotifications = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const token = localStorage.getItem("token");
       const { data } = await axios.get(
         "http://localhost:3500/api/auth/notifications",
@@ -36,12 +36,26 @@ const Notifications = ({ setNotificationCount }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setNotifications(data.notifications);
+
+      setNotifications(data.notifications || []); // Ensure it's always an array
     } catch (error) {
       toast.error(
-        error.response?.data?.message || "Failed to load notifications"
+        error.response?.data?.message || "Failed to load notifications",
+        {
+          style: {
+            background: "#fff",
+            color: "#000",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          },
+          iconTheme: {
+            primary: "#ff0000", // bright red
+            secondary: "#ffffff", // white
+          },
+        }
       );
     } finally {
+      // Always stop loading
       setIsLoading(false);
     }
   };
@@ -62,13 +76,40 @@ const Notifications = ({ setNotificationCount }) => {
       );
 
       if (data.success) {
-        toast.success("Teacher approved successfully!");
-        fetchNotifications();
+        toast.success("Teacher approved successfully!", {
+          style: {
+            background: "#fff",
+            color: "#000",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          },
+          iconTheme: {
+            primary: "#000",
+            secondary: "#fff",
+          },
+        });
+
+        // Optimistically update notifications instead of refetching
+        setNotifications((prev) =>
+          prev.filter((teacher) => teacher.id !== teacherId)
+        );
+
         // Update notification count
-        setNotificationCount((prev) => prev - 1);
+        setNotificationCount((prev) => (prev > 0 ? prev - 1 : 0));
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Error approving teacher");
+      toast.error(error.response?.data?.message || "Error approving teacher", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#ff0000", // bright red
+          secondary: "#ffffff", // white
+        },
+      });
     }
   };
 
@@ -89,15 +130,42 @@ const Notifications = ({ setNotificationCount }) => {
       );
 
       if (data.success) {
-        toast.success("Teacher rejected successfully!");
+        toast.success("Teacher rejected successfully!", {
+          style: {
+            background: "#fff",
+            color: "#000",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          },
+          iconTheme: {
+            primary: "#000",
+            secondary: "#fff",
+          },
+        });
+
+        // Remove the rejected teacher from notifications
+        setNotifications((prev) =>
+          prev.filter((teacher) => teacher.id !== selectedTeacher.id)
+        );
+
         setRejectionReason("");
         setSelectedTeacher(null);
         setIsModalOpen(false);
-        fetchNotifications();
-        setNotificationCount((prev) => prev - 1);
+        setNotificationCount((prev) => (prev > 0 ? prev - 1 : 0));
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Error rejecting teacher");
+      toast.error(error.response?.data?.message || "Error rejecting teacher", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#ff0000", // bright red
+          secondary: "#ffffff", // white
+        },
+      });
     }
   };
 

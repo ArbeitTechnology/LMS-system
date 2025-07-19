@@ -14,6 +14,10 @@ button:focus {
   outline: none;
   box-shadow: none;
 }
+.outline-blue-600:focus {
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px;
+}
 /* Hide number input spinners */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {

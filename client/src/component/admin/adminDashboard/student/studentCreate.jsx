@@ -103,89 +103,112 @@ const StudentAuth = () => {
     return isValid;
   };
 
-const handleRegister = async (e) => {
-  e.preventDefault();
+  const handleRegister = async (e) => {
+    e.preventDefault();
 
-  if (!validateForm()) {
-    toast.error("Please fix all errors before submitting");
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  try {
-    const formData = new FormData();
-
-    // Append all form fields
-    for (const [key, value] of Object.entries(form)) {
-      if (value) formData.append(key, value);
+    if (!validateForm()) {
+      toast.error("Please fix all errors before submitting");
+      return;
     }
 
-    // Append profile photo if exists
-    if (files.profile_photo) {
-      formData.append("profile_photo", files.profile_photo);
-    }
+    setIsSubmitting(true);
 
-    // Debug: Log FormData contents
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
+    try {
+      const formData = new FormData();
 
-    // API call to register student
-    const response = await axios.post(
-      "http://localhost:3500/api/admin/students",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+      // Append all form fields
+      for (const [key, value] of Object.entries(form)) {
+        if (value) formData.append(key, value);
       }
-    );
 
-    if (response.data && response.data.success) {
-      toast.success(
-        response.data.message ||
-          "Registration successful! Please check your email for verification."
-      );
-      // Reset form after successful registration
-      setForm({
-        email: "",
-        password: "",
-        full_name: "",
-        phone: "",
-        date_of_birth: "",
-        address: "",
-      });
-      setFiles({
-        profile_photo: null,
-      });
-    } else {
-      throw new Error("Unexpected response format");
-    }
-  } catch (err) {
-    let errorMessage = "Registration failed";
+      // Append profile photo if exists
+      if (files.profile_photo) {
+        formData.append("profile_photo", files.profile_photo);
+      }
 
-    if (err.response) {
-      // Handle server validation errors
-      if (err.response.data) {
-        if (Array.isArray(err.response.data.message)) {
-          errorMessage = err.response.data.message.join(", ");
-        } else if (err.response.data.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.response.data.error) {
-          errorMessage = err.response.data.error;
+      // Debug: Log FormData contents
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+
+      // API call to register student
+      const response = await axios.post(
+        "http://localhost:3500/api/admin/students",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
-      }
-    } else if (err.message) {
-      errorMessage = err.message;
-    }
+      );
 
-    toast.error(errorMessage);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      if (response.data && response.data.success) {
+        toast.success(
+          response.data.message ||
+            "Registration successful! Please check your email for verification.",
+          {
+            style: {
+              background: "#fff",
+              color: "#000",
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+            },
+            iconTheme: {
+              primary: "#000",
+              secondary: "#fff",
+            },
+          }
+        );
+        // Reset form after successful registration
+        setForm({
+          email: "",
+          password: "",
+          full_name: "",
+          phone: "",
+          date_of_birth: "",
+          address: "",
+        });
+        setFiles({
+          profile_photo: null,
+        });
+      } else {
+        throw new Error("Unexpected response format");
+      }
+    } catch (err) {
+      let errorMessage = "Registration failed";
+
+      if (err.response) {
+        // Handle server validation errors
+        if (err.response.data) {
+          if (Array.isArray(err.response.data.message)) {
+            errorMessage = err.response.data.message.join(", ");
+          } else if (err.response.data.message) {
+            errorMessage = err.response.data.message;
+          } else if (err.response.data.error) {
+            errorMessage = err.response.data.error;
+          }
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      toast.error(errorMessage, {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#ff0000", // bright red
+          secondary: "#ffffff", // white
+        },
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <motion.div

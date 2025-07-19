@@ -67,7 +67,7 @@ Studnetauth.post("/register", async (req, res) => {
     const { email, password, full_name, phone } = req.body;
     console.log(req.body)
     // Check if student already exists
-    const existingStudent = await Student.findOne({ email:req.body.email });
+    const existingStudent = await Student.findOne({ email: req.body.email });
     if (existingStudent) {
       return res.status(400).json({
         status: "fail",

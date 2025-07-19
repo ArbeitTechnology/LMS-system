@@ -36,10 +36,19 @@ const StudentList = () => {
         setStudents(response.data.data);
         setLoading(false);
       } catch (err) {
-        setError("Failed to fetch students");
         setLoading(false);
-        console.error(err);
-        toast.error("Failed to load students");
+        toast.error("Failed to load students", {
+          style: {
+            background: "#fff",
+            color: "#000",
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          },
+          iconTheme: {
+            primary: "#ff0000", // bright red
+            secondary: "#ffffff", // white
+          },
+        });
       }
     };
 
@@ -81,10 +90,32 @@ const StudentList = () => {
 
       // Update the local state to remove the deleted student
       setStudents(students.filter((student) => student._id !== id));
-      toast.success("Student deleted successfully");
+      toast.success("Student deleted successfully", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#000",
+          secondary: "#fff",
+        },
+      });
     } catch (error) {
       console.error(error);
-      toast.error("Failed to delete student");
+      toast.error("Failed to delete student", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#ff0000", // bright red
+          secondary: "#ffffff", // white
+        },
+      });
     }
   };
 

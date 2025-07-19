@@ -27,18 +27,14 @@ const mcqSchema = new mongoose.Schema({
       message: 'Correct answer index must be within options range'
     }
   },
-  category: {
-    type: String,
-    enum: ['General', 'Science', 'History', 'Math', 'Programming']
-  },
-  difficulty: {
-    type: String,
-    required: true,
-    enum: ['Easy', 'Medium', 'Hard']
-  },
+
   explanation: {
     type: String,
     trim: true
+  },
+    points: {
+    type: Number,
+    required: true,
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,

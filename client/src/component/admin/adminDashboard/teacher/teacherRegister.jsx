@@ -16,6 +16,7 @@ import {
 } from "react-icons/fi";
 
 const TeacherRegistration = () => {
+  const [customSpecialization, setCustomSpecialization] = useState("");
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -83,8 +84,13 @@ const TeacherRegistration = () => {
           error = "Include country code (e.g., +880)";
         break;
       case "specialization":
-        if (!value) error = "Specialization is required";
+        if (!value) {
+          error = "Specialization is required";
+        } else if (value === "Other" && !customSpecialization.trim()) {
+          error = "Please specify your specialization";
+        }
         break;
+
       case "qualifications":
         if (!value) error = "Qualifications are required";
         else if (value.length < 20) error = "Minimum 20 characters required";
@@ -118,7 +124,14 @@ const TeacherRegistration = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     const newValue = name === "email" ? value.toLowerCase() : value;
+
     setForm((prev) => ({ ...prev, [name]: newValue }));
+
+    // If the specialization is "Other", clear the customSpecialization field
+    if (name === "specialization" && value !== "Other") {
+      setCustomSpecialization("");
+    }
+
     if (errors[name]) validateField(name, newValue);
   };
 
@@ -224,9 +237,21 @@ const TeacherRegistration = () => {
     try {
       const formData = new FormData();
 
+      // Handle specialization: if "Other" is selected, use customSpecialization
+      const specializationToSend =
+        form.specialization === "Other"
+          ? customSpecialization
+          : form.specialization;
+
       Object.entries(form).forEach(([key, value]) => {
+        if (key === "specialization") return; // Skip specialization from default loop
         if (value) formData.append(key, value);
       });
+
+      // Append specialization separately
+      if (specializationToSend) {
+        formData.append("specialization", specializationToSend);
+      }
 
       if (files.cv) {
         formData.append("cv", files.cv);
@@ -250,7 +275,18 @@ const TeacherRegistration = () => {
         }
       );
 
-      toast.success("Registration submitted for approval");
+      toast.success("Registration submitted for approval", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#000",
+          secondary: "#fff",
+        },
+      });
 
       // Reset form
       setForm({
@@ -263,6 +299,7 @@ const TeacherRegistration = () => {
         linkedin_url: "",
         hourly_rate: "",
       });
+      setCustomSpecialization(""); // Reset custom specialization
       setFiles({
         cv: null,
         certificates: [],
@@ -285,7 +322,18 @@ const TeacherRegistration = () => {
         profile_photo: "",
       });
     } catch (err) {
-      toast.error(err.response?.data?.message || "Registration failed");
+      toast.error(err.response?.data?.message || "Registration failed", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#ff0000", // bright red
+          secondary: "#ffffff", // white
+        },
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -468,6 +516,23 @@ const TeacherRegistration = () => {
                   <option value="GMAT">GMAT</option>
                   <option value="Other">Other</option>
                 </select>
+                {form.specialization === "Other" && (
+                  <input
+                    type="text"
+                    placeholder="Enter your specialization"
+                    value={customSpecialization}
+                    onChange={(e) => setCustomSpecialization(e.target.value)}
+                    onBlur={() =>
+                      validateField("specialization", form.specialization)
+                    }
+                    className={`w-full px-4 py-3 mt-3 rounded-lg border ${
+                      errors.specialization
+                        ? "border-red-500"
+                        : "border-gray-700"
+                    } focus:ring-2 focus:ring-black focus:border-gray-500`}
+                  />
+                )}
+
                 {errors.specialization && (
                   <motion.p
                     initial={{ opacity: 0, y: -5 }}

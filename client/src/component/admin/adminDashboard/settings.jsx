@@ -56,6 +56,7 @@ const Settings = () => {
           name: response.data.username || "Admin User",
           email: response.data.email || "admin@example.com",
           avatarColor: randomGradient,
+          passwordChangedAt: response.data.passwordChangedAt, // <-- Store it
         });
       } catch (err) {
         console.error("Failed to fetch profile:", err);
@@ -65,6 +66,23 @@ const Settings = () => {
 
     fetchProfile();
   }, []);
+  const timeAgo = (dateString) => {
+    if (!dateString) return "unknown time";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays < 1) return "today";
+    if (diffDays < 30) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+
+    const diffMonths = Math.floor(diffDays / 30);
+    if (diffMonths < 12)
+      return `${diffMonths} month${diffMonths > 1 ? "s" : ""} ago`;
+
+    const diffYears = Math.floor(diffMonths / 12);
+    return `${diffYears} year${diffYears > 1 ? "s" : ""} ago`;
+  };
 
   const handleEditToggle = (field) => {
     if (editMode[field]) {
@@ -157,7 +175,18 @@ const Settings = () => {
         }
       );
 
-      toast.success("Password changed successfully!");
+      toast.success("Password changed successfully!", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#000",
+          secondary: "#fff",
+        },
+      });
       setPasswordData({
         currentPassword: "",
         newPassword: "",
@@ -165,8 +194,18 @@ const Settings = () => {
       });
       setShowPasswordChange(false);
     } catch (err) {
-      console.error("Failed to change password:", err);
-      toast.error(err.response?.data?.message || "Failed to change password");
+      toast.error(err.response?.data?.message || "Failed to change password", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#ff0000", // bright red
+          secondary: "#ffffff", // white
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -307,7 +346,7 @@ const Settings = () => {
               <p className="text-gray-600 mb-4">
                 {showPasswordChange
                   ? "Enter your current and new password"
-                  : "Last changed 3 months ago"}
+                  : `Last changed ${timeAgo(profile.passwordChangedAt)}`}
               </p>
 
               <AnimatePresence>

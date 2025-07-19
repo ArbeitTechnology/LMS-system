@@ -84,16 +84,39 @@ const SubadminList = () => {
       const token = localStorage.getItem("token");
       await axios.put(
         `http://localhost:3500/api/auth/subadmin/${id}/status`,
-        { status: editedStatus },
+        { status: editedStatus || "active" }, // Ensure a default value
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      toast.success("Status updated");
+      toast.success("Status updated", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#000",
+          secondary: "#fff",
+        },
+      });
+
       fetchSubadmins();
       setEditStatusId(null);
     } catch (err) {
-      toast.error("Failed to update status");
+      toast.error("Failed to update status", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#ff0000",
+          secondary: "#ffffff",
+        },
+      });
     }
   };
 
@@ -212,9 +235,9 @@ const SubadminList = () => {
                               className="border border-gray-300 rounded px-2 py-1 text-sm"
                             >
                               <option value="active">Active</option>
-                              <option value="inactive">Inactive</option>
                               <option value="suspended">Suspended</option>
                             </select>
+
                             <button
                               onClick={() => handleStatusUpdate(admin._id)}
                               className="text-green-600 hover:underline text-sm"
@@ -238,7 +261,7 @@ const SubadminList = () => {
                             <button
                               onClick={() => {
                                 setEditStatusId(admin._id);
-                                setEditedStatus(admin.status);
+                                setEditedStatus("active"); // Default to active
                               }}
                               className="text-gray-500 hover:text-black"
                             >
@@ -247,6 +270,7 @@ const SubadminList = () => {
                           </div>
                         )}
                       </td>
+
                       <td className="px-6 py-4 whitespace-nowrap  text-right text-sm font-medium">
                         <div className="flex justify-end">
                           <motion.button

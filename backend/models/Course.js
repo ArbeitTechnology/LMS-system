@@ -83,7 +83,13 @@ const courseSchema = new Schema({
     type: String,
     enum: ['beginner', 'intermediate', 'advanced'],
     default: 'beginner'
-  }
+  },
+    previousInstructors: [{
+    instructor: { type: Schema.Types.ObjectId, ref: 'User' },
+    changedAt: { type: Date, default: Date.now },
+    changedBy: { type: Schema.Types.ObjectId, ref: 'User' }
+  }],
+  createbyid:String
 }, { timestamps: true });
 
 // Calculate average rating whenever a new rating is added
