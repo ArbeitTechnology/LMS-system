@@ -16,7 +16,11 @@ import {
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
+<<<<<<< HEAD
 
+=======
+import axios from "axios";
+>>>>>>> origin/abusaid
 const CourseList = ({ setActiveView }) => {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
@@ -26,15 +30,23 @@ const CourseList = ({ setActiveView }) => {
   const [priceFilter, setPriceFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [enrolledCourses, setEnrolledCourses] = useState([]);
+<<<<<<< HEAD
 
   // API Integration Note:
   // In a production environment, replace this useEffect with actual API calls
   // Example API call structure:
   /*
+=======
+  const [enrolling, setEnrolling] = useState(false);
+  const base_url = import.meta.env.VITE_API_KEY_Base_URL;
+  const studnetdata=JSON.parse(localStorage.getItem("studentData"));
+  // Fetch courses from API
+>>>>>>> origin/abusaid
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         setLoading(true);
+<<<<<<< HEAD
         const response = await fetch('https://api.yourdomain.com/courses');
         const data = await response.json();
         setCourses(data);
@@ -42,10 +54,38 @@ const CourseList = ({ setActiveView }) => {
       } catch (error) {
         toast.error('Failed to load courses');
         console.error('Error fetching courses:', error);
+=======
+        const response = await fetch(`${base_url}/api/student/all-courses`);
+        const data = await response.json();
+        
+        if (data.success) {
+          const formattedCourses = data.courses.map(course => ({
+            id: course._id,
+            title: course.title || course.name || 'Untitled Course',
+            description: course.description || 'No description available',
+            thumbnail: course.thumbnail || 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80',
+            instructor: course.instructor || 'Unknown Instructor',
+            rating: course.rating || 4.5,
+            students: course.students || course.enrolledStudents || 0,
+            duration: course.duration || 'Unknown duration',
+            price: course.price || 0,
+            type: course.price > 0 ? 'premium' : 'free'
+          }));
+          
+          setCourses(formattedCourses);
+          setFilteredCourses(formattedCourses);
+        } else {
+          toast.error(data.message || 'Failed to load courses');
+        }
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+        toast.error('Failed to connect to server');
+>>>>>>> origin/abusaid
       } finally {
         setLoading(false);
       }
     };
+<<<<<<< HEAD
     
     const fetchCart = async () => {
       try {
@@ -92,6 +132,35 @@ const CourseList = ({ setActiveView }) => {
       // Load enrolled courses (simulated - replace with API)
       setEnrolledCourses(["course1", "course3"]);
     }, 800);
+=======
+
+    fetchCourses();
+
+    // Load cart from localStorage
+    const savedCart = JSON.parse(localStorage.getItem("courseCart")) || [];
+    setCart(savedCart);
+
+    // // Load enrolled courses from API
+    // const fetchEnrolledCourses = async () => {
+    //   try {
+    //     const response = await fetch(`${base_url}/api/student/my-courses`, {
+    //       headers: {
+    //         'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+    //       }
+    //     });
+    //     const data = await response.json();
+    //     if (data.success) {
+    //       setEnrolledCourses(data.enrolledCourses.map(c => c.course._id));
+    //     }
+    //   } catch (error) {
+    //     console.error('Error fetching enrolled courses:', error);
+    //   }
+    // };
+
+    // if (localStorage.getItem('token')) {
+    //   fetchEnrolledCourses();
+    // }
+>>>>>>> origin/abusaid
   }, []);
 
   // Filter courses based on search and price filter
@@ -116,7 +185,11 @@ const CourseList = ({ setActiveView }) => {
     setFilteredCourses(results);
   }, [searchTerm, priceFilter, courses]);
 
+<<<<<<< HEAD
   // Add to cart function - would call API in production
+=======
+  // Add to cart function
+>>>>>>> origin/abusaid
   const addToCart = (course) => {
     if (cart.some((item) => item.id === course.id)) {
       toast.error("Course already in cart");
@@ -132,6 +205,7 @@ const CourseList = ({ setActiveView }) => {
     setCart(updatedCart);
     localStorage.setItem("courseCart", JSON.stringify(updatedCart));
     toast.success("Course added to cart");
+<<<<<<< HEAD
 
     // API Integration Note:
     /*
@@ -156,11 +230,17 @@ const CourseList = ({ setActiveView }) => {
   };
 
   // Remove from cart function - would call API in production
+=======
+  };
+
+  // Remove from cart function
+>>>>>>> origin/abusaid
   const removeFromCart = (courseId) => {
     const updatedCart = cart.filter((item) => item.id !== courseId);
     setCart(updatedCart);
     localStorage.setItem("courseCart", JSON.stringify(updatedCart));
     toast.success("Course removed from cart");
+<<<<<<< HEAD
 
     // API Integration Note:
     /*
@@ -182,11 +262,25 @@ const CourseList = ({ setActiveView }) => {
 
   // Enroll course function - would call API in production
   const enrollCourse = (courseId) => {
+=======
+  };
+
+  // Enroll course function
+ // Enroll course function using Axios
+const enrollCourse = async (courseId) => {
+  if (enrolling) return;
+  
+  try {
+    setEnrolling(true);
+    
+    // Check if already enrolled locally first
+>>>>>>> origin/abusaid
     if (enrolledCourses.includes(courseId)) {
       toast.error("You're already enrolled in this course");
       return;
     }
 
+<<<<<<< HEAD
     const courseToEnroll = courses.find((course) => course.id === courseId);
 
     // Add progress tracking to the course object
@@ -232,6 +326,39 @@ const CourseList = ({ setActiveView }) => {
     */
   };
 
+=======
+    // Make API call to enroll using Axios
+    const response = await axios.post(
+      `${base_url}/api/student/enroll/${courseId}`,
+      { userid: studnetdata.id },  // request body
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('studentToken')}`
+        }
+      }
+    );
+
+    // With Axios, response data is automatically parsed and available in response.data
+    // No need to check response.ok - Axios throws errors for non-2xx status codes
+
+    // Update local state if API call succeeds
+    setEnrolledCourses([...enrolledCourses, courseId]);
+    toast.success("Successfully enrolled in course!");
+    
+    // Optionally navigate to the course
+    // navigate(`/learn/${courseId}`);
+
+  } catch (error) {
+    console.error('Enrollment error:', error);
+    // Axios wraps the response error in error.response
+    const errorMessage = error.response?.data?.message || error.message || 'Failed to enroll in course';
+    toast.error(errorMessage);
+  } finally {
+    setEnrolling(false);
+  }
+};
+>>>>>>> origin/abusaid
   // Check if course is in cart
   const isInCart = (courseId) => {
     return cart.some((item) => item.id === courseId);
@@ -245,6 +372,7 @@ const CourseList = ({ setActiveView }) => {
   // Calculate cart total
   const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
 
+<<<<<<< HEAD
   // Dummy course data - replace with API data
   const dummyCourses = [
     {
@@ -335,6 +463,13 @@ const CourseList = ({ setActiveView }) => {
   return (
     <div className="min-h-screen text-gray-900 p-0">
       {/* Header - Responsive for all devices */}
+=======
+  return (
+    <div className="min-h-screen text-gray-900 p-0">
+      <Toaster position="top-right" />
+      
+      {/* Header */}
+>>>>>>> origin/abusaid
       <header className="bg-white py-4 sm:py-6 px-4 sm:px-6 lg:px-8 border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <h1 className="text-xl sm:text-2xl font-bold">Courses</h1>
@@ -367,9 +502,15 @@ const CourseList = ({ setActiveView }) => {
         </div>
       </header>
 
+<<<<<<< HEAD
       {/* Main Content - Responsive layout */}
       <main className="max-w-7xl mx-auto py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
         {/* Search and Filter Section - Responsive layout */}
+=======
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
+        {/* Search and Filter Section */}
+>>>>>>> origin/abusaid
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
             <div className="relative flex-1 max-w-2xl">
@@ -402,7 +543,11 @@ const CourseList = ({ setActiveView }) => {
           </div>
         </div>
 
+<<<<<<< HEAD
         {/* Course Grid - Responsive columns */}
+=======
+        {/* Course Grid */}
+>>>>>>> origin/abusaid
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[...Array(6)].map((_, i) => (
@@ -433,7 +578,13 @@ const CourseList = ({ setActiveView }) => {
                 <div>
                   <div className="relative">
                     <img
+<<<<<<< HEAD
                       src={course.thumbnail}
+=======
+                      src={course.thumbnail?.filename ? 
+                           `${base_url}/uploads/courses/${course.thumbnail.filename}` : 
+                           course.thumbnail}
+>>>>>>> origin/abusaid
                       alt={course.title}
                       className="w-full h-40 sm:h-48 object-cover"
                     />
@@ -445,9 +596,16 @@ const CourseList = ({ setActiveView }) => {
                     <h3 className="text-base sm:text-lg font-bold mb-1 line-clamp-2">
                       {course.title}
                     </h3>
+<<<<<<< HEAD
                     <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2">
                       {course.description}
                     </p>
+=======
+                    <p 
+                      className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2"
+                      dangerouslySetInnerHTML={{ __html: course.description }} 
+                    />
+>>>>>>> origin/abusaid
                     <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 mb-2">
                       <span className="flex items-center">
                         <FiStar className="mr-1 text-yellow-400" />{" "}
@@ -478,9 +636,18 @@ const CourseList = ({ setActiveView }) => {
                   ) : course.price === 0 ? (
                     <button
                       onClick={() => enrollCourse(course.id)}
+<<<<<<< HEAD
                       className="w-full bg-gray-900 text-white py-1 sm:py-2 rounded-lg text-xs sm:text-sm hover:bg-gray-800 transition-all"
                     >
                       Enroll Now
+=======
+                      disabled={enrolling}
+                      className={`w-full bg-gray-900 text-white py-1 sm:py-2 rounded-lg text-xs sm:text-sm hover:bg-gray-800 transition-all ${
+                        enrolling ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      {enrolling ? 'Enrolling...' : 'Enroll Now'}
+>>>>>>> origin/abusaid
                     </button>
                   ) : isInCart(course.id) ? (
                     <button
@@ -520,4 +687,8 @@ const CourseList = ({ setActiveView }) => {
   );
 };
 
+<<<<<<< HEAD
 export default CourseList;
+=======
+export default CourseList;
+>>>>>>> origin/abusaid

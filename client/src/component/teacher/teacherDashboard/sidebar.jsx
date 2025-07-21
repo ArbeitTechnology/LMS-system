@@ -46,6 +46,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         { name: "Course List", icon: <FiList size={16} />, path: "/teacher/course-list" },
       ],
     },
+<<<<<<< HEAD
     {
       name: "Assessments",
       icon: <FiFileText size={18} />,
@@ -56,6 +57,18 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         { name: "Question List", icon: <FiList size={16} />, path: "/teacher/question-list" },
       ],
     },
+=======
+    // {
+    //   name: "Assessments",
+    //   icon: <FiFileText size={18} />,
+    //   children: [
+    //     { name: "Create MCQ", icon: <FiEdit size={16} />, path: "/teacher/create-mcq" },
+    //     { name: "MCQ List", icon: <FiList size={16} />, path: "/teacher/mcq-list" },
+    //     { name: "Create Question", icon: <FiEdit size={16} />, path: "/teacher/create-question" },
+    //     { name: "Question List", icon: <FiList size={16} />, path: "/teacher/question-list" },
+    //   ],
+    // },
+>>>>>>> origin/abusaid
     {
       name: "notifications",
       icon: (

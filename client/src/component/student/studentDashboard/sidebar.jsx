@@ -17,10 +17,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 const Sidebar = ({ activeView, setActiveView }) => {
+<<<<<<< HEAD
   const [isOpen, setIsOpen] = useState(true);
   const [studentData, setStudentData] = useState({
     name: "Loading...",
     email: "loading...@example.com",
+=======
+    const base_url = import.meta.env.VITE_API_KEY_Base_URL;
+    const studentdata=JSON.parse(localStorage.getItem("studentData"));
+    const studentToken=localStorage.getItem("studentToken");
+  const [isOpen, setIsOpen] = useState(true);
+  const [studentData, setStudentData] = useState({
+    name: "",
+    email: "",
+>>>>>>> origin/abusaid
     avatarColor: "bg-gradient-to-r from-purple-500 to-pink-500",
   });
   const [loading, setLoading] = useState(true);
@@ -29,6 +39,7 @@ const Sidebar = ({ activeView, setActiveView }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+<<<<<<< HEAD
     const fetchStudentData = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -75,6 +86,45 @@ const Sidebar = ({ activeView, setActiveView }) => {
         setLoading(false);
       }
     };
+=======
+const fetchStudentData = async () => {
+  try {
+    // Fetch student profile data
+    const response = await axios.get(
+      `${base_url}/api/student/profile/${studentdata.id}`, // Use your actual backend URL
+      {
+        headers: {
+          Authorization: `Bearer ${studentToken}`,
+        },
+      }
+    );
+   console.log(response.data);
+    const gradients = [
+      "bg-gradient-to-r from-purple-500 to-pink-500",
+      "bg-gradient-to-r from-blue-500 to-teal-400",
+      "bg-gradient-to-r from-amber-500 to-pink-500",
+      "bg-gradient-to-r from-emerald-500 to-blue-500",
+      "bg-gradient-to-r from-violet-500 to-fuchsia-500",
+    ];
+    const randomGradient =
+      gradients[Math.floor(Math.random() * gradients.length)];
+
+    setStudentData({
+      name: response.data.student.full_name,
+      email: response.data.student.email,
+      avatarColor: randomGradient,
+      // Add additional student data you want to display
+      ...response.data.student
+    });
+
+    setLoading(false);
+  } catch (err) {
+    console.error("Failed to fetch student data:", err);
+    toast.error("Failed to load student data");
+    setLoading(false);
+  }
+};
+>>>>>>> origin/abusaid
 
     fetchStudentData();
   }, []);
@@ -280,7 +330,11 @@ const Sidebar = ({ activeView, setActiveView }) => {
               className="ml-3"
             >
               <p className="text-sm font-medium text-gray-900 truncate max-w-[160px]">
+<<<<<<< HEAD
                 {loading ? "Loading..." : studentData.name}
+=======
+                { studentData.name}
+>>>>>>> origin/abusaid
               </p>
               <p className="text-xs text-gray-500 truncate max-w-[160px]">
                 {studentData.email}

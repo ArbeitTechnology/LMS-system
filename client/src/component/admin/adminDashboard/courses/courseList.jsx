@@ -5,6 +5,10 @@ import { FiEdit2, FiTrash2, FiUser, FiSearch, FiFilter } from "react-icons/fi";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "react-hot-toast";
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/abusaid
 const CourseList = () => {
   const base_url = import.meta.env.VITE_API_KEY_Base_URL;
   const [courses, setCourses] = useState([]);
@@ -33,7 +37,11 @@ const CourseList = () => {
     }
   };
 
+<<<<<<< HEAD
   // Fetch teachers from API (you might need to create this endpoint)
+=======
+  // Fetch teachers from API
+>>>>>>> origin/abusaid
   const fetchTeachers = async () => {
     try {
       const response = await axios.get(`${base_url}/api/admin/teachers`, {
@@ -51,8 +59,13 @@ const CourseList = () => {
           boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
         },
         iconTheme: {
+<<<<<<< HEAD
           primary: "#ff0000", // bright red
           secondary: "#ffffff", // white
+=======
+          primary: "#ff0000",
+          secondary: "#ffffff",
+>>>>>>> origin/abusaid
         },
       });
     }
@@ -73,6 +86,7 @@ const CourseList = () => {
     return matchesSearch && matchesFilter;
   });
 
+<<<<<<< HEAD
   // Handle assigning teacher to course
   const assignTeacher = async (courseId, teacherId) => {
     try {
@@ -85,6 +99,25 @@ const CourseList = () => {
       const response = await axios.patch(
         `${base_url}/api/admin/courses/${courseId}`,
         { instructor: teacherId },
+=======
+  // Handle changing course instructor
+  const changeInstructor = async (courseId, newInstructorId) => {
+    try {
+      if (!courseId || !newInstructorId) {
+        toast.error("Both course and teacher selection are required.");
+        return;
+      }
+
+      // Get admin ID from your authentication context or localStorage
+      const admindata= JSON.parse(localStorage.getItem("admin"));
+
+      const response = await axios.put(
+        `${base_url}/api/admin/courses/${courseId}/change-instructor`,
+        {
+          newInstructorId,
+          changedBy: admindata._id,
+        },
+>>>>>>> origin/abusaid
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -93,7 +126,11 @@ const CourseList = () => {
       );
 
       if (response.data.success) {
+<<<<<<< HEAD
         toast.success("Teacher Assigned!", {
+=======
+        toast.success("Instructor changed successfully!", {
+>>>>>>> origin/abusaid
           style: {
             background: "#fff",
             color: "#000",
@@ -105,10 +142,18 @@ const CourseList = () => {
             secondary: "#fff",
           },
         });
+<<<<<<< HEAD
         fetchCourses();
       }
     } catch (err) {
       toast.error("Failed to assign teacher. Please try again.", {
+=======
+        fetchCourses(); // Refresh the course list
+      }
+    } catch (err) {
+      console.error("Error changing instructor:", err);
+      toast.error("Failed to change instructor. Please try again.", {
+>>>>>>> origin/abusaid
         style: {
           background: "#fff",
           color: "#000",
@@ -116,8 +161,13 @@ const CourseList = () => {
           boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
         },
         iconTheme: {
+<<<<<<< HEAD
           primary: "#ff0000", // bright red
           secondary: "#ffffff", // white
+=======
+          primary: "#ff0000",
+          secondary: "#ffffff",
+>>>>>>> origin/abusaid
         },
       });
     }
@@ -132,6 +182,21 @@ const CourseList = () => {
         },
       });
       fetchCourses(); // Refresh the course list after deletion
+<<<<<<< HEAD
+=======
+      toast.success("Course deleted successfully!", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#000",
+          secondary: "#fff",
+        },
+      });
+>>>>>>> origin/abusaid
     } catch (err) {
       toast.error("Failed to delete course. Please try again.", {
         style: {
@@ -141,8 +206,13 @@ const CourseList = () => {
           boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
         },
         iconTheme: {
+<<<<<<< HEAD
           primary: "#ff0000", // bright red
           secondary: "#ffffff", // white
+=======
+          primary: "#ff0000",
+          secondary: "#ffffff",
+>>>>>>> origin/abusaid
         },
       });
     }
@@ -168,6 +238,21 @@ const CourseList = () => {
       );
       fetchCourses(); // Refresh the course list
       setEditingCourse(null);
+<<<<<<< HEAD
+=======
+      toast.success("Course updated successfully!", {
+        style: {
+          background: "#fff",
+          color: "#000",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        },
+        iconTheme: {
+          primary: "#000",
+          secondary: "#fff",
+        },
+      });
+>>>>>>> origin/abusaid
     } catch (err) {
       console.error("Error updating course:", err);
       toast.error("Failed to update course. Please try again.", {
@@ -178,8 +263,13 @@ const CourseList = () => {
           boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
         },
         iconTheme: {
+<<<<<<< HEAD
           primary: "#ff0000", // bright red
           secondary: "#ffffff", // white
+=======
+          primary: "#ff0000",
+          secondary: "#ffffff",
+>>>>>>> origin/abusaid
         },
       });
     }
@@ -312,6 +402,7 @@ const CourseList = () => {
                       <div className="mt-4 flex flex-wrap gap-4 items-center">
                         <div className="flex items-center">
                           <FiUser className="text-gray-500 mr-2" />
+<<<<<<< HEAD
                           <select
                             className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:border-gray-500"
                             value={course.instructor?._id || ""}
@@ -326,6 +417,24 @@ const CourseList = () => {
                               </option>
                             ))}
                           </select>
+=======
+                    <select
+  className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:border-gray-500"
+  value={course.instructor?._id || ""}
+  onChange={(e) => changeInstructor(course._id, e.target.value)}
+>
+  <option value="">Select Teacher</option>
+  {teachers.map((teacher) => (
+    <option 
+      key={teacher._id} 
+      value={teacher._id}
+      selected={teacher._id === course.instructor}
+    >
+      {teacher.full_name}
+    </option>
+  ))}
+</select>
+>>>>>>> origin/abusaid
                         </div>
 
                         <div className="text-sm text-gray-500">
@@ -392,7 +501,11 @@ const CourseList = () => {
                     Description
                   </label>
                   <textarea
+<<<<<<< HEAD
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg  focus:border-gray-500"
+=======
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-gray-500"
+>>>>>>> origin/abusaid
                     rows="3"
                     value={editingCourse.description}
                     onChange={(e) =>
@@ -467,4 +580,8 @@ const CourseList = () => {
   );
 };
 
+<<<<<<< HEAD
 export default CourseList;
+=======
+export default CourseList;
+>>>>>>> origin/abusaid

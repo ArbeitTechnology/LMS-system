@@ -726,7 +726,11 @@ Teaceherrouter.get('/all-courses', authenticateTeacher, async (req, res) => {
 // Get courses created by the current teacher
 Teaceherrouter.get('/my-courses/:id', authenticateTeacher, async (req, res) => {
   try {
+<<<<<<< HEAD
     const courses = await Course.find({ createbyid: req.params.id }).sort({ createdAt: -1 });
+=======
+    const courses = await Course.find({ instructor: req.params.id }).sort({ createdAt: -1 });
+>>>>>>> origin/abusaid
     res.send(courses);
   } catch (error) {
     res.status(500).send({ error: error.message });

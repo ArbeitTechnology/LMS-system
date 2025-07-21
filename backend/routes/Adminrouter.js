@@ -1310,5 +1310,91 @@ Adminrouter.put('/reassign-teacher/:courseId',authenticateToken,authorizeAdmin,a
     }
   }
 );
+<<<<<<< HEAD
+=======
+
+
+
+// Change course instructor (admin only)
+Adminrouter.put(
+  '/courses/:courseId/change-instructor',
+  authenticateToken,
+  authorizeAdmin,
+  async (req, res) => {
+    try {
+      console.log(req.params)
+      const { courseId } = req.params;
+      const { newInstructorId, changedBy } = req.body;
+
+      // Validate required fields
+      if (!newInstructorId || !changedBy) {
+        return res.status(400).json({
+          success: false,
+          message: 'Both newInstructorId and changedBy are required'
+        });
+      }
+
+      // Find the course
+      const course = await Course.findById(courseId);
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: 'Course not found'
+        });
+      }
+
+      // Verify the new instructor exists (optional - remove if not needed)
+      const newInstructor = await Teacher.findById(newInstructorId);
+      if (!newInstructor) {
+        return res.status(404).json({
+          success: false,
+          message: 'New instructor not found'
+        });
+      }
+
+      // Verify the admin making the change exists (optional)
+      const adminMakingChange = await Admin.findById(changedBy);
+      if (!adminMakingChange) {
+        return res.status(404).json({
+          success: false,
+          message: 'Admin making the change not found'
+        });
+      }
+
+      // If there's a current instructor, add to previous instructors
+      if (course.instructor) {
+        course.previousInstructors.push({
+          instructor: course.instructor,
+          changedAt: new Date(),
+          changedBy: changedBy
+        });
+      }
+
+      // Update the instructor
+      course.instructor = newInstructorId;
+      await course.save();
+
+      res.json({
+        success: true,
+        message: 'Course instructor updated successfully',
+        data: {
+          courseId: course._id,
+          newInstructor: newInstructorId,
+          previousInstructor: course.instructor,
+          changedBy: changedBy,
+          changedAt: new Date()
+        }
+      });
+    } catch (error) {
+      console.error('Error changing course instructor:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error while changing course instructor',
+        error: error.message
+      });
+    }
+  }
+);
+>>>>>>> origin/abusaid
 // ------------------------------------courses-routes-------------------------------------------------
 module.exports = Adminrouter;

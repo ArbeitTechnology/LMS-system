@@ -6,6 +6,10 @@ const authRoutes = require("./routes/auth");
 const Adminrouter = require("./routes/Adminrouter");
 const Studnetauth = require("./routes/Studentauth");
 const Teaceherrouter = require("./routes/Teacherrouter");
+<<<<<<< HEAD
+=======
+const Studentrouter = require("./routes/Studentrouter");
+>>>>>>> origin/abusaid
 
 const app = express();
 const PORT = process.env.PORT || 3500;
@@ -23,6 +27,10 @@ app.use(cors(corsOptions)); // Use the CORS configuration
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/auth/student", Studnetauth);
+<<<<<<< HEAD
+=======
+app.use("/api/student", Studentrouter);
+>>>>>>> origin/abusaid
 app.use("/api/admin", Adminrouter);
 app.use("/api/teacher", Teaceherrouter);
 app.use(express.static("public"))

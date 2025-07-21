@@ -50,7 +50,11 @@ const StudentDashboard = () => {
 
   return (
     <div className="bg-gradient-to-br from-gray-100 to-gray-300 min-h-screen flex items-center justify-center p-4">
+<<<<<<< HEAD
       <div className="flex w-full max-w-7xl h-[95vh] bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200">
+=======
+      <div className="flex w-full  h-[95vh] bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200">
+>>>>>>> origin/abusaid
         {/* Sidebar Section */}
         <Sidebar activeView={activeView} setActiveView={setActiveView} />
 
